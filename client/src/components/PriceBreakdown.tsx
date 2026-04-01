@@ -4,6 +4,7 @@ interface PriceBreakdownProps {
   creditUsed?: number;
   finalPrice: number;
   currency?: string;
+  isDark?: boolean;
 }
 
 export default function PriceBreakdown({

@@ -89,39 +89,42 @@ export default function AdminSidebar() {
   const pendingCount = bookingsData?.meta?.total ?? 0;
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[220px] bg-gray-100/50 border-r border-border flex flex-col z-50 px-2 py-3">
+    <aside className="fixed left-0 top-0 bottom-0 w-[220px] bg-surface border-r border-white/5 flex flex-col z-50 px-3 py-6">
       {/* Brand area */}
-      <div className="flex items-center gap-2.5 px-3 mb-8">
-        <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-          <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-white" stroke="currentColor" strokeWidth="3">
+      <div className="flex items-center gap-3 px-3 mb-10">
+        <div className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center shadow-neon">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-background" stroke="currentColor" strokeWidth="3">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" />
           </svg>
         </div>
-        <span className="text-[14px] font-semibold tracking-tight text-gray-900">
-          SportHub <span className="text-gray-400 font-normal">CRM</span>
-        </span>
+        <div className="flex flex-col">
+          <span className="text-[16px] font-display font-black tracking-tight text-white leading-none uppercase">
+            Sport<span className="text-primary italic">Hub</span>
+          </span>
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] mt-1">Admin Panel</span>
+        </div>
       </div>
 
       {/* Nav list */}
-      <nav className="flex-1 space-y-0.5">
+      <nav className="flex-1 space-y-1.5">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] font-medium transition-all duration-150 ${
+              className={`flex items-center gap-3 px-4 h-11 rounded-xl text-[13px] font-bold transition-all duration-300 group ${
                 isActive
-                  ? 'bg-white text-primary shadow-sm border border-border'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+                  ? 'bg-primary/10 text-primary border border-primary/20'
+                  : 'text-gray-500 hover:text-white hover:bg-white/5'
               }`}
             >
-              <span className={isActive ? 'text-primary' : 'text-gray-400'}>
+              <span className={`transition-colors duration-300 ${isActive ? 'text-primary' : 'text-gray-500 group-hover:text-primary'}`}>
                 {item.icon}
               </span>
               <span className="flex-1">{item.label}</span>
               {item.badge && pendingCount > 0 && (
-                <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold rounded bg-primary text-white">
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-black rounded-lg bg-accent text-white shadow-lg shadow-accent/20">
                   {pendingCount}
                 </span>
               )}
@@ -131,19 +134,23 @@ export default function AdminSidebar() {
       </nav>
 
       {/* User Area */}
-      <div className="mt-auto border-t border-border pt-3 px-1">
-        <div className="flex items-center gap-2.5 px-2 py-2 hover:bg-gray-200/50 rounded-md transition-colors cursor-pointer group">
-          <div className="w-7 h-7 rounded bg-gray-200 flex items-center justify-center text-[10px] font-semibold text-gray-600">
+      <div className="mt-auto pt-6 px-1">
+        <div className="flex items-center gap-3 p-2.5 bg-white/5 rounded-2xl border border-white/5 group transition-all hover:border-white/10">
+          <div className="w-9 h-9 rounded-xl bg-surface-lighter flex items-center justify-center text-[11px] font-black text-primary border border-white/5 shadow-inner">
             AD
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-medium text-gray-900 truncate">Administrator</p>
+            <p className="text-[12px] font-bold text-white truncate">Administrator</p>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <p className="text-[9px] text-gray-500 font-black uppercase tracking-wider truncate">System Online</p>
+            </div>
           </div>
           <button 
             onClick={handleLogout}
-            className="text-gray-400 hover:text-gray-900 p-1"
+            className="text-gray-500 hover:text-accent p-2 hover:bg-white/5 rounded-xl transition-all"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             </svg>
           </button>

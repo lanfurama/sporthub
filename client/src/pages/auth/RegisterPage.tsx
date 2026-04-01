@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Zap, Mail, Lock, User, Phone, ChevronRight, PlayCircle } from 'lucide-react';
 import { authApi } from '../../api/auth';
 import { useAuthStore } from '../../store/auth.store';
 import Spinner from '../../components/Spinner';
@@ -13,6 +15,7 @@ export default function RegisterPage() {
     email: '',
     phone: '',
     password: '',
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,6 +27,12 @@ export default function RegisterPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (form.password !== form.confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -36,119 +45,178 @@ export default function RegisterPage() {
       login(token, user);
       navigate('/', { replace: true });
     } catch (err: any) {
-      setError(err?.response?.data?.error?.message ?? 'Registration failed. Please try again.');
+      setError(err?.response?.data?.error?.message ?? 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-deep px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo flex items-center justify-center">
-              <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 text-white" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 2v20M2 12h20" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-text-base">
-              Sport<span className="text-indigo">Hub</span>
-            </span>
-          </div>
-          <h1 className="text-xl font-semibold text-text-base">Create your account</h1>
-          <p className="text-sm text-muted mt-1">Join SportHub today</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 relative overflow-hidden">
+      <div className="bg-shape shape-1 opacity-20" />
+      <div className="bg-shape shape-2 opacity-10" />
 
-        {/* Card */}
-        <div className="bg-bg-card border border-border-dark rounded-2xl p-8">
+      <div className="w-full max-w-[440px] relative z-10">
+        {/* Logo area */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center mb-10"
+        >
+          <Link to="/" className="flex items-center gap-3 group mb-4">
+            <motion.div 
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-neon"
+            >
+              <PlayCircle className="w-8 h-8 text-background" />
+            </motion.div>
+            <span className="text-2xl font-display font-black text-white tracking-tight">
+              SPORT<span className="text-primary italic">HUB</span>
+            </span>
+          </Link>
+          <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Bắt đầu hành trình chinh phục sân đấu</p>
+        </motion.div>
+
+        {/* Auth card */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="glass-card p-8 border-white/10 shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-5">
+            <Zap size={100} className="text-primary" />
+          </div>
+
+          <h2 className="text-2xl font-display font-bold text-white mb-2 uppercase tracking-tight">Đăng ký</h2>
+          <p className="text-xs text-gray-500 mb-8 font-medium">Tạo tài khoản để bắt đầu trải nghiệm dịch vụ.</p>
+
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-red/10 border border-red/30 text-red text-sm">
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="mb-6 px-4 py-3 rounded-xl bg-accent/10 border border-accent/20 text-accent text-xs font-bold flex items-center gap-2"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
               {error}
-            </div>
+            </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-text-base mb-1.5">
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-                placeholder="John Doe"
-                className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-bg-panel text-text-base placeholder-muted text-sm focus:outline-none focus:border-indigo transition-colors"
-              />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Họ và tên</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="VD: Nguyễn Văn A"
+                  className="input-field pl-12 py-3.5"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-base mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                placeholder="you@example.com"
-                className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-bg-panel text-text-base placeholder-muted text-sm focus:outline-none focus:border-indigo transition-colors"
-              />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="name@example.com"
+                  className="input-field pl-12 py-3.5"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-base mb-1.5">
-                Phone{' '}
-                <span className="text-muted font-normal">(optional)</span>
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="+66 81 234 5678"
-                className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-bg-panel text-text-base placeholder-muted text-sm focus:outline-none focus:border-indigo transition-colors"
-              />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Số điện thoại</label>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="09xx xxx xxx (Tùy chọn)"
+                  className="input-field pl-12 py-3.5"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-base mb-1.5">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                required
-                minLength={6}
-                placeholder="Min. 6 characters"
-                className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-bg-panel text-text-base placeholder-muted text-sm focus:outline-none focus:border-indigo transition-colors"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Mật khẩu</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                  <input
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    placeholder="••••••••"
+                    className="input-field pl-12 py-3.5 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Xác nhận</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    placeholder="••••••••"
+                    className="input-field pl-12 py-3.5 text-xs"
+                  />
+                </div>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 rounded-lg bg-indigo text-white font-semibold text-sm hover:bg-indigo/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full btn-primary py-4 mt-6 shadow-neon group"
             >
-              {loading ? <Spinner size={18} /> : null}
-              {loading ? 'Creating account…' : 'Create Account'}
+              {loading ? (
+                <>
+                  <Spinner size={18} />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  Đăng ký ngay
+                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </form>
-
-          <p className="mt-6 text-center text-sm text-muted">
-            Already have an account?{' '}
-            <Link to="/login" className="text-indigo hover:text-indigo/80 font-medium transition-colors">
-              Sign in
-            </Link>
-          </p>
-        </div>
+          
+          <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <p className="text-xs text-gray-500 font-medium">
+              Đã có tài khoản? <Link to="/login" className="text-primary font-bold hover:underline">Đăng nhập</Link>
+            </p>
+          </div>
+        </motion.div>
+        
+        <p className="mt-12 text-center text-xs text-gray-600 font-medium px-8">
+          Bằng việc đăng ký, bạn đồng ý với các Điều khoản và Chính sách của SportHub.
+        </p>
       </div>
     </div>
   );

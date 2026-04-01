@@ -6,6 +6,7 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  isDark?: boolean;
 }
 
 const SIZE_CLASSES = {
