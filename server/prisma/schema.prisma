@@ -1,0 +1,471 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  guest
+  member
+  staff
+  admin
+  super_admin
+  
+  @@map("user_role")
+}
+
+enum MembershipPlan {
+  basic
+  prime
+  vip
+  
+  @@map("membership_plan")
+}
+
+enum MembershipStatus {
+  active
+  expired
+  cancelled
+  
+  @@map("membership_status")
+}
+
+enum SportType {
+  Tennis
+  Pickleball
+  Badminton
+  
+  @@map("sport_type")
+}
+
+enum CourtStatus {
+  active
+  maintenance
+  inactive
+  
+  @@map("court_status")
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  rejected
+  cancelled
+  completed
+  
+  @@map("booking_status")
+}
+
+enum BookingSource {
+  online
+  admin
+  
+  @@map("booking_source")
+}
+
+enum CreditTxType {
+  credit
+  debit
+  
+  @@map("credit_tx_type")
+}
+
+enum OrderStatus {
+  pending
+  paid
+  cancelled
+  refunded
+  
+  @@map("order_status")
+}
+
+enum ProductStatus {
+  active
+  inactive
+  
+  @@map("product_status")
+}
+
+enum OtpPurpose {
+  password_reset
+  admin_2fa
+  phone_verify
+}
+
+model User {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String    @db.VarChar(100)
+  phone        String?   @unique @db.VarChar(15)
+  email        String?   @unique @db.VarChar(255)
+  passwordHash String?   @map("password_hash") @db.VarChar(255)
+  role         UserRole  @default(guest)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  memberships           Membership[]
+  bookings              Booking[]
+  orders                Order[]
+  oauthAccounts         OauthAccount[]
+  otpCodes              OtpCode[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  chatSessions          ChatSession[]
+  waitlists             Waitlist[]
+  recurringBookings     RecurringBooking[]
+
+  @@map("users")
+}
+
+model MembershipPlanConfig {
+  id               MembershipPlan @id
+  displayName      String         @map("display_name") @db.VarChar(50)
+  priceVnd         Int            @map("price_vnd")
+  durationDays     Int            @default(30) @map("duration_days")
+  courtDiscountPct Int            @default(0) @map("court_discount_pct")
+  shopDiscountPct  Int            @default(0) @map("shop_discount_pct")
+  creditPerCycle   Int            @default(0) @map("credit_per_cycle")
+  guestPasses      Int            @default(0) @map("guest_passes")
+  priorityBooking  Boolean        @default(false) @map("priority_booking")
+
+  memberships Membership[]
+
+  @@map("membership_plans")
+}
+
+model Membership {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String           @map("user_id") @db.Uuid
+  plan          MembershipPlan
+  status        MembershipStatus @default(active)
+  startedAt     DateTime         @map("started_at") @db.Date
+  expiresAt     DateTime         @map("expires_at") @db.Date
+  creditBalance Int              @default(0) @map("credit_balance")
+  guestPasses   Int              @default(0) @map("guest_passes")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planConfig            MembershipPlanConfig   @relation(fields: [plan], references: [id])
+  creditTransactions    CreditTransaction[]
+  guestPassTransactions GuestPassTransaction[]
+  bookings              Booking[]
+  orders                Order[]
+  waitlists             Waitlist[]
+  recurringBookings     RecurringBooking[]
+
+  @@map("memberships")
+}
+
+model Court {
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(100)
+  sport       SportType
+  surface     String?     @db.VarChar(50)
+  isIndoor    Boolean     @default(false) @map("is_indoor")
+  priceNormal Int         @map("price_normal")
+  pricePeak   Int         @map("price_peak")
+  peakStart   String      @default("17:00") @map("peak_start") @db.VarChar(5)
+  peakEnd     String      @default("21:00") @map("peak_end") @db.VarChar(5)
+  status      CourtStatus @default(active)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  bookings          Booking[]
+  waitlists         Waitlist[]
+  recurringBookings RecurringBooking[]
+
+  @@map("courts")
+}
+
+model Booking {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ref           String        @unique @db.VarChar(10)
+  courtId       Int           @map("court_id")
+  customerId    String?       @map("customer_id") @db.Uuid
+  membershipId  String?       @map("membership_id") @db.Uuid
+  customerName  String        @map("customer_name") @db.VarChar(100)
+  customerPhone String        @map("customer_phone") @db.VarChar(15)
+  bookingDate   DateTime      @map("booking_date") @db.Date
+  startTime     String        @map("start_time") @db.VarChar(5)
+  durationHours Decimal       @map("duration_hours") @db.Decimal(3, 1)
+  basePrice     Int           @map("base_price")
+  discountAmount Int          @default(0) @map("discount_amount")
+  creditUsed    Int           @default(0) @map("credit_used")
+  finalPrice    Int           @map("final_price")
+  payMethod     String?       @map("pay_method") @db.VarChar(50)
+  status        BookingStatus @default(pending)
+  source        BookingSource @default(online)
+  note          String?
+  cancelledAt   DateTime?     @map("cancelled_at")
+  cancelReason  String?       @map("cancel_reason")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  court                 Court                  @relation(fields: [courtId], references: [id])
+  customer              User?                  @relation(fields: [customerId], references: [id])
+  membership            Membership?            @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  guestPassTransactions GuestPassTransaction[]
+  waitlistConversions   Waitlist[]             @relation("WaitlistConversion")
+
+  @@map("bookings")
+}
+
+model Product {
+  id        Int           @id @default(autoincrement())
+  name      String        @db.VarChar(200)
+  category  String?       @db.VarChar(100)
+  price     Int
+  stock     Int           @default(0)
+  isService Boolean       @default(false) @map("is_service")
+  status    ProductStatus @default(active)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId     String?     @map("customer_id") @db.Uuid
+  membershipId   String?     @map("membership_id") @db.Uuid
+  subtotal       Int
+  discountAmount Int         @default(0) @map("discount_amount")
+  creditUsed     Int         @default(0) @map("credit_used")
+  total          Int
+  payMethod      String?     @map("pay_method") @db.VarChar(50)
+  status         OrderStatus @default(paid)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  customer   User?       @relation(fields: [customerId], references: [id])
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  items      OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId   String @map("order_id") @db.Uuid
+  productId Int    @map("product_id")
+  quantity  Int
+  unitPrice Int    @map("unit_price")
+  subtotal  Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model CreditTransaction {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  membershipId  String       @map("membership_id") @db.Uuid
+  amount        Int
+  type          CreditTxType
+  referenceType String?      @map("reference_type") @db.VarChar(50)
+  referenceId   String?      @map("reference_id") @db.Uuid
+  note          String?
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+
+  @@map("credit_transactions")
+}
+
+model OtpCode {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  purpose   OtpPurpose
+  codeHash  String     @map("code_hash")
+  channel   String     @default("sms") @db.VarChar(10)
+  attempts  Int        @default(0)
+  expiresAt DateTime   @map("expires_at")
+  usedAt    DateTime?  @map("used_at")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("otp_codes")
+}
+
+model OauthAccount {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  provider       String    @db.VarChar(30)
+  providerUid    String    @map("provider_uid")
+  email          String?   @db.VarChar(255)
+  accessToken    String?   @map("access_token")
+  refreshToken   String?   @map("refresh_token")
+  tokenExpiresAt DateTime? @map("token_expires_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUid])
+  @@map("oauth_accounts")
+}
+
+model RolePermission {
+  id       Int      @id @default(autoincrement())
+  role     UserRole
+  resource String   @db.VarChar(50)
+  action   String   @db.VarChar(20)
+
+  @@unique([role, resource, action])
+  @@map("role_permissions")
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  targetType String?  @map("target_type") @db.VarChar(50)
+  targetId   String?  @map("target_id")
+  payload    Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+}
+
+enum WaitlistStatus {
+  waiting
+  notified
+  converted
+  expired
+}
+
+enum RecurrenceStatus {
+  active
+  paused
+  cancelled
+}
+
+enum NotificationChannel {
+  email
+  sms
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+}
+
+model GuestPassTransaction {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  membershipId String     @map("membership_id") @db.Uuid
+  amount       Int
+  type         String     @db.VarChar(10)  // 'used' | 'added' | 'expired'
+  bookingId    String?    @map("booking_id") @db.Uuid
+  note         String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  booking    Booking?   @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@map("guest_pass_transactions")
+}
+
+model Waitlist {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  courtId             Int            @map("court_id")
+  customerId          String?        @map("customer_id") @db.Uuid
+  membershipId        String?        @map("membership_id") @db.Uuid
+  customerName        String         @map("customer_name") @db.VarChar(100)
+  customerPhone       String         @map("customer_phone") @db.VarChar(15)
+  bookingDate         DateTime       @map("booking_date") @db.Date
+  startTime           String         @map("start_time") @db.VarChar(5)
+  durationHours       Decimal        @map("duration_hours") @db.Decimal(3, 1)
+  status              WaitlistStatus @default(waiting)
+  notifiedAt          DateTime?      @map("notified_at")
+  convertedBookingId  String?        @map("converted_booking_id") @db.Uuid
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  court           Court       @relation(fields: [courtId], references: [id])
+  customer        User?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  membership      Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  convertedBooking Booking?   @relation("WaitlistConversion", fields: [convertedBookingId], references: [id], onDelete: SetNull)
+
+  @@map("waitlists")
+}
+
+model RecurringBooking {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  courtId       Int              @map("court_id")
+  customerId    String?          @map("customer_id") @db.Uuid
+  membershipId  String?          @map("membership_id") @db.Uuid
+  customerName  String           @map("customer_name") @db.VarChar(100)
+  customerPhone String           @map("customer_phone") @db.VarChar(15)
+  dayOfWeek     Int              @map("day_of_week")
+  startTime     String           @map("start_time") @db.VarChar(5)
+  durationHours Decimal          @map("duration_hours") @db.Decimal(3, 1)
+  startsOn      DateTime         @map("starts_on") @db.Date
+  endsOn        DateTime?        @map("ends_on") @db.Date
+  status        RecurrenceStatus @default(active)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  court      Court       @relation(fields: [courtId], references: [id])
+  customer   User?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+
+  @@map("recurring_bookings")
+}
+
+model Notification {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String?             @map("user_id") @db.Uuid
+  channel       NotificationChannel
+  type          String              @db.VarChar(50)
+  recipient     String              @db.VarChar(255)
+  subject       String?             @db.VarChar(255)
+  body          String
+  status        NotificationStatus  @default(pending)
+  sentAt        DateTime?           @map("sent_at")
+  errorMessage  String?             @map("error_message")
+  referenceType String?             @map("reference_type") @db.VarChar(50)
+  referenceId   String?             @map("reference_id") @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+model ChatSession {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String?   @map("user_id") @db.Uuid
+  sessionKey    String?   @unique @map("session_key") @db.VarChar(100)
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user     User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId String   @map("session_id") @db.Uuid
+  role      String   @db.VarChar(20)
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
