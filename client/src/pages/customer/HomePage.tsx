@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,7 +18,7 @@ const SPORTS = [
 
 const DURATIONS = [1, 1.5, 2, 2.5, 3];
 
-function CourtCard({ court, onBook, index }: { court: Court; onBook: () => void; index: number }) {
+function CourtCard({ court, onBook, index, t, lang }: { court: Court; onBook: () => void; index: number; t: any; lang: string }) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -47,7 +48,7 @@ function CourtCard({ court, onBook, index }: { court: Court; onBook: () => void;
                 : 'bg-status-danger-bg text-status-danger-text border-status-danger-border'
             }`}
           >
-            {court.status === 'active' ? 'Sẵn sàng' : court.status}
+            {court.status === 'active' ? t('home.courtStatus.active') : court.status}
           </span>
         </div>
 
@@ -59,18 +60,18 @@ function CourtCard({ court, onBook, index }: { court: Court; onBook: () => void;
 
         <div className="space-y-3 mb-6 bg-white/5 rounded-xl p-4 border border-white/5">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500 font-medium">Giá thường</span>
-            <span className="text-sm text-white font-bold">{court.priceNormal.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">VND/giờ</span></span>
+            <span className="text-xs text-gray-500 font-medium">{t('home.priceNormal')}</span>
+            <span className="text-sm text-white font-bold">{court.priceNormal.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">{t('home.perHour')}</span></span>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-1.5">
               <Zap size={12} className="text-amber-400" />
-              <span className="text-xs text-amber-400 font-bold uppercase tracking-tight">Giá Peak</span>
+              <span className="text-xs text-amber-400 font-bold uppercase tracking-tight">{t('home.pricePeak')}</span>
             </div>
-            <span className="text-sm text-amber-400 font-bold">{court.pricePeak.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">VND/giờ</span></span>
+            <span className="text-sm text-amber-400 font-bold">{court.pricePeak.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">{t('home.perHour')}</span></span>
           </div>
           <div className="pt-2 border-t border-white/5 flex justify-between items-center">
-            <span className="text-[10px] text-gray-500 uppercase font-bold">Khung giờ Peak</span>
+            <span className="text-[10px] text-gray-500 uppercase font-bold">{t('home.peakHours')}</span>
             <span className="text-[11px] text-gray-400">{court.peakStart} – {court.peakEnd}</span>
           </div>
         </div>
@@ -80,7 +81,7 @@ function CourtCard({ court, onBook, index }: { court: Court; onBook: () => void;
           disabled={court.status !== 'active'}
           className="w-full btn-primary py-3 group-hover:shadow-[0_0_20px_rgba(204,255,0,0.3)]"
         >
-          Đặt ngay
+          {t('home.bookNow')}
         </button>
       </div>
     </motion.div>
@@ -88,6 +89,8 @@ function CourtCard({ court, onBook, index }: { court: Court; onBook: () => void;
 }
 
 export default function HomePage() {
+  const { t } = useTranslation();
+  const { lang = 'en' } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -125,7 +128,7 @@ export default function HomePage() {
       time,
       duration: String(duration),
     });
-    navigate(`/book?${params.toString()}`);
+    navigate(`/${lang}/book?${params.toString()}`);
   };
 
   return (
@@ -146,7 +149,7 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest mb-8"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Sẵn sàng cho trận đấu tiếp theo
+              {t('home.heroBadge')}
             </motion.div>
             
             <motion.h1 
@@ -155,7 +158,7 @@ export default function HomePage() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="text-5xl md:text-7xl font-display font-black text-white mb-6 leading-[1.1] tracking-tighter"
             >
-              CHINH PHỤC <span className="text-primary italic">MỌI SÂN ĐẤU</span>
+              {t('home.heroTitle')} <span className="text-primary italic">{t('home.heroTitleHighlight')}</span>
             </motion.h1>
             
             <motion.p 
@@ -164,8 +167,7 @@ export default function HomePage() {
               transition={{ delay: 0.3, duration: 0.5 }}
               className="text-gray-400 text-lg md:text-xl mb-12 max-w-2xl mx-auto font-medium"
             >
-              Hệ thống đặt sân chuyên nghiệp cho Tennis, Pickleball & Badminton. 
-              Trải nghiệm nhanh chóng, thanh toán an toàn.
+              {t('home.heroDescription')}
             </motion.p>
 
             {/* Sport Selectors */}
@@ -196,7 +198,7 @@ export default function HomePage() {
                         {sport.label}
                       </div>
                       <div className={`text-[10px] font-bold ${isActive ? 'text-primary' : 'text-gray-500'}`}>
-                        {courtCount} SÂN CÓ SẴN
+                        {courtCount} {t('home.courtsAvailable')}
                       </div>
                     </div>
                   </motion.button>
@@ -247,7 +249,7 @@ export default function HomePage() {
                     >
                       {DURATIONS.map((d) => (
                         <option key={d} value={d} className="bg-surface text-white">
-                          {d} giờ thi đấu
+                          {d} {t('home.hoursPlay')}
                         </option>
                       ))}
                     </select>
@@ -260,7 +262,7 @@ export default function HomePage() {
                     className="w-full h-full btn-primary py-4 rounded-xl flex items-center justify-center gap-2 group"
                   >
                     <Search size={20} className="group-hover:scale-110 transition-transform" />
-                    <span className="uppercase tracking-widest font-bold text-xs">Tìm sân ngay</span>
+                    <span className="uppercase tracking-widest font-bold text-xs">{t('home.searchButton')}</span>
                   </button>
                 </div>
               </div>
@@ -282,8 +284,8 @@ export default function HomePage() {
                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20">
                   <Search className="text-primary" size={32} />
                 </div>
-                <h2 className="text-2xl font-display font-bold text-white mb-2">Sẵn sàng để bắt đầu?</h2>
-                <p className="text-gray-500">Chọn môn thể thao và thời gian để tìm sân phù hợp nhất.</p>
+                <h2 className="text-2xl font-display font-bold text-white mb-2">{t('home.readyTitle')}</h2>
+                <p className="text-gray-500">{t('home.readySubtitle')}</p>
               </motion.div>
             ) : isFetching ? (
               <motion.div 
@@ -294,7 +296,7 @@ export default function HomePage() {
                 className="flex flex-col items-center justify-center py-20"
               >
                 <Spinner size={48} />
-                <p className="text-primary font-bold uppercase tracking-widest text-xs mt-6 animate-pulse">Đang tìm kiếm sân trống...</p>
+                <p className="text-primary font-bold uppercase tracking-widest text-xs mt-6 animate-pulse">{t('home.searching')}</p>
               </motion.div>
             ) : isError ? (
               <motion.div 
@@ -305,7 +307,7 @@ export default function HomePage() {
                 className="text-center py-20 text-accent bg-accent/5 border border-accent/20 rounded-2xl"
               >
                 <Zap size={40} className="mx-auto mb-4" />
-                <p className="font-bold">Đã có lỗi xảy ra. Vui lòng thử lại sau.</p>
+                <p className="font-bold">{t('home.errorMessage')}</p>
               </motion.div>
             ) : !courts || courts.length === 0 ? (
               <motion.div 
@@ -316,13 +318,13 @@ export default function HomePage() {
                 className="text-center py-20 glass-card border-white/5"
               >
                 <div className="text-6xl mb-6">🏟️</div>
-                <h3 className="text-2xl font-display font-bold text-white mb-2">Hết sân trống rồi!</h3>
-                <p className="text-gray-500 max-w-md mx-auto">Chúng tôi không tìm thấy sân nào phù hợp với yêu cầu của bạn. Thử thay đổi thời gian hoặc ngày xem sao nhé.</p>
+                <h3 className="text-2xl font-display font-bold text-white mb-2">{t('home.noResultsTitle')}</h3>
+                <p className="text-gray-500 max-w-md mx-auto">{t('home.noResultsMessage')}</p>
                 <button 
                   onClick={() => setSearched(false)}
                   className="mt-8 text-primary font-bold uppercase tracking-widest text-xs hover:underline"
                 >
-                  Quay lại tìm kiếm
+                  {t('home.backToSearch')}
                 </button>
               </motion.div>
             ) : (
@@ -335,9 +337,9 @@ export default function HomePage() {
                 <div className="flex items-center justify-between border-b border-white/5 pb-6">
                   <div>
                     <h2 className="text-3xl font-display font-bold text-white">
-                      Kết quả <span className="text-primary italic">tìm kiếm</span>
+                      {t('home.resultsTitle')} <span className="text-primary italic">{t('home.resultsHighlight')}</span>
                     </h2>
-                    <p className="text-gray-500 text-sm mt-1">Tìm thấy {courts.length} sân phù hợp</p>
+                    <p className="text-gray-500 text-sm mt-1">{t('home.courtsFound', { count: courts.length })}</p>
                   </div>
                   <div className="flex gap-2">
                     <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -356,6 +358,8 @@ export default function HomePage() {
                       court={court}
                       onBook={() => handleBook(court)}
                       index={i}
+                      t={t}
+                      lang={lang}
                     />
                   ))}
                 </div>
@@ -376,8 +380,7 @@ export default function HomePage() {
             </span>
           </div>
           <p className="text-gray-500 text-sm max-w-md mx-auto">
-            Nền tảng quản lý và đặt sân thể thao hàng đầu. 
-            Kết nối cộng đồng đam mê vận động.
+            {t('home.footerDescription')}
           </p>
           <div className="mt-8 flex justify-center gap-6">
             {['Facebook', 'Instagram', 'TikTok'].map(social => (
@@ -387,7 +390,7 @@ export default function HomePage() {
             ))}
           </div>
           <p className="mt-12 text-[10px] text-gray-600 uppercase tracking-[0.2em]">
-            © 2026 SportHub Platform. All Rights Reserved.
+            {t('home.footerCopyright')}
           </p>
         </div>
       </footer>
