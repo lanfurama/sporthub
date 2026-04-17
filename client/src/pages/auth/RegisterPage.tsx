@@ -1,13 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, Mail, Lock, User, Phone, ChevronRight, PlayCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../../api/auth';
 import { useAuthStore } from '../../store/auth.store';
 import Spinner from '../../components/Spinner';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { lang = 'en' } = useParams<{ lang: string }>();
+  const { t } = useTranslation();
   const login = useAuthStore((s) => s.login);
 
   const [form, setForm] = useState({
@@ -29,7 +32,7 @@ export default function RegisterPage() {
     setError('');
 
     if (form.password !== form.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
@@ -43,9 +46,9 @@ export default function RegisterPage() {
       };
       const { token, user } = await authApi.register(payload);
       login(token, user);
-      navigate('/', { replace: true });
+      navigate(`/${lang}`, { replace: true });
     } catch (err: any) {
-      setError(err?.response?.data?.error?.message ?? 'Đăng ký thất bại. Vui lòng thử lại.');
+      setError(err?.response?.data?.error?.message ?? t('auth.registerFailed'));
     } finally {
       setLoading(false);
     }
@@ -57,14 +60,13 @@ export default function RegisterPage() {
       <div className="bg-shape shape-2 opacity-10" />
 
       <div className="w-full max-w-[440px] relative z-10">
-        {/* Logo area */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center mb-10"
         >
-          <Link to="/" className="flex items-center gap-3 group mb-4">
-            <motion.div 
+          <Link to={`/${lang}`} className="flex items-center gap-3 group mb-4">
+            <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-neon"
             >
@@ -74,11 +76,10 @@ export default function RegisterPage() {
               SPORT<span className="text-primary italic">HUB</span>
             </span>
           </Link>
-          <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Bắt đầu hành trình chinh phục sân đấu</p>
+          <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">{t('auth.journeyTagline')}</p>
         </motion.div>
 
-        {/* Auth card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
@@ -88,11 +89,11 @@ export default function RegisterPage() {
             <Zap size={100} className="text-primary" />
           </div>
 
-          <h2 className="text-2xl font-display font-bold text-white mb-2 uppercase tracking-tight">Đăng ký</h2>
-          <p className="text-xs text-gray-500 mb-8 font-medium">Tạo tài khoản để bắt đầu trải nghiệm dịch vụ.</p>
+          <h2 className="text-2xl font-display font-bold text-white mb-2 uppercase tracking-tight">{t('auth.registerTitle')}</h2>
+          <p className="text-xs text-gray-500 mb-8 font-medium">{t('auth.registerSubtitle')}</p>
 
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               className="mb-6 px-4 py-3 rounded-xl bg-accent/10 border border-accent/20 text-accent text-xs font-bold flex items-center gap-2"
@@ -106,7 +107,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Họ và tên</label>
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">{t('auth.name')}</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
                 <input
@@ -115,14 +116,14 @@ export default function RegisterPage() {
                   value={form.name}
                   onChange={handleChange}
                   required
-                  placeholder="VD: Nguyễn Văn A"
+                  placeholder={t('auth.namePlaceholder')}
                   className="input-field pl-12 py-3.5"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Email</label>
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">{t('auth.email')}</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
                 <input
@@ -138,7 +139,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Số điện thoại</label>
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">{t('auth.phone')}</label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
                 <input
@@ -146,7 +147,7 @@ export default function RegisterPage() {
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
-                  placeholder="09xx xxx xxx (Tùy chọn)"
+                  placeholder={t('auth.phonePlaceholder')}
                   className="input-field pl-12 py-3.5"
                 />
               </div>
@@ -154,7 +155,7 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Mật khẩu</label>
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">{t('auth.password')}</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
                   <input
@@ -171,7 +172,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Xác nhận</label>
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">{t('auth.confirmPassword')}</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
                   <input
@@ -196,26 +197,26 @@ export default function RegisterPage() {
               {loading ? (
                 <>
                   <Spinner size={18} />
-                  Đang xử lý...
+                  {t('auth.processing')}
                 </>
               ) : (
                 <>
-                  Đăng ký ngay
+                  {t('auth.registerButton')}
                   <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
           </form>
-          
+
           <div className="mt-8 pt-6 border-t border-white/5 text-center">
             <p className="text-xs text-gray-500 font-medium">
-              Đã có tài khoản? <Link to="/login" className="text-primary font-bold hover:underline">Đăng nhập</Link>
+              {t('auth.hasAccount')} <Link to={`/${lang}/login`} className="text-primary font-bold hover:underline">{t('auth.loginLink')}</Link>
             </p>
           </div>
         </motion.div>
-        
+
         <p className="mt-12 text-center text-xs text-gray-600 font-medium px-8">
-          Bằng việc đăng ký, bạn đồng ý với các Điều khoản và Chính sách của SportHub.
+          {t('auth.termsAgreement')}
         </p>
       </div>
     </div>
