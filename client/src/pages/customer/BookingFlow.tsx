@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,26 +14,26 @@ import { bookingsApi } from '../../api/bookings';
 import { useAuthStore } from '../../store/auth.store';
 import type { Court, Member } from '../../types';
 
-const STEPS = ['Thông tin sân', 'Thông tin của bạn', 'Xác nhận'];
+const STEP_KEYS = ['booking.steps.courtInfo', 'booking.steps.yourInfo', 'booking.steps.confirm'];
 
-function StepIndicator({ current }: { current: number }) {
+function StepIndicator({ current, t }: { current: number; t: any }) {
   return (
     <div className="flex items-center justify-between max-w-md mx-auto mb-12 relative">
       {/* Background Line */}
       <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/5 -translate-y-1/2 z-0" />
-      
+
       {/* Active Line */}
-      <motion.div 
+      <motion.div
         className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-0"
         initial={{ width: '0%' }}
-        animate={{ width: `${(current / (STEPS.length - 1)) * 100}%` }}
+        animate={{ width: `${(current / (STEP_KEYS.length - 1)) * 100}%` }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
       />
 
-      {STEPS.map((label, i) => {
+      {STEP_KEYS.map((key, i) => {
         const state = i < current ? 'done' : i === current ? 'active' : 'future';
         return (
-          <div key={label} className="relative z-10 flex flex-col items-center">
+          <div key={key} className="relative z-10 flex flex-col items-center">
             <motion.div
               animate={{
                 scale: state === 'active' ? 1.2 : 1,
@@ -44,7 +45,7 @@ function StepIndicator({ current }: { current: number }) {
               {state === 'done' ? <CheckCircle2 size={20} /> : i + 1}
             </motion.div>
             <span className={`absolute top-12 whitespace-nowrap text-[10px] uppercase tracking-widest font-bold ${state === 'active' ? 'text-primary' : 'text-gray-500'}`}>
-              {label}
+              {t(key)}
             </span>
           </div>
         );
@@ -77,6 +78,8 @@ function isPeakTime(startTime: string, peakStart: string, peakEnd: string): bool
 }
 
 export default function BookingFlow() {
+  const { t } = useTranslation();
+  const { lang = 'en' } = useParams<{ lang: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -178,9 +181,9 @@ export default function BookingFlow() {
       };
       const res = await bookingsApi.create(payload);
       const ref = res?.data?.ref ?? res?.ref ?? 'N/A';
-      navigate(`/booking/success?ref=${ref}`);
+      navigate(`/${lang}/booking/success?ref=${ref}`);
     } catch (err: any) {
-      setApiError(err?.response?.data?.error?.message ?? 'Booking failed. Please try again.');
+      setApiError(err?.response?.data?.error?.message ?? t('booking.bookingFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -217,11 +220,11 @@ export default function BookingFlow() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
-            <h1 className="text-4xl font-display font-black text-white mb-3">ĐẶT SÂN <span className="text-primary italic">NGAY</span></h1>
-            <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">Hoàn thành các bước để xác nhận lịch đặt của bạn</p>
+            <h1 className="text-4xl font-display font-black text-white mb-3">{t('booking.title')} <span className="text-primary italic">{t('booking.titleHighlight')}</span></h1>
+            <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">{t('booking.subtitle')}</p>
           </motion.div>
 
-          <StepIndicator current={step} />
+          <StepIndicator current={step} t={t} />
 
           <div className="relative mt-20">
             <AnimatePresence custom={direction} mode="wait">
@@ -242,7 +245,7 @@ export default function BookingFlow() {
                       <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                         <Calendar size={20} />
                       </div>
-                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Thông tin sân & Lịch đặt</h2>
+                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">{t('booking.courtSchedule')}</h2>
                     </div>
 
                     {courtLoading && (
@@ -268,10 +271,10 @@ export default function BookingFlow() {
                         </div>
                         <div className="flex flex-col md:items-end gap-1">
                           <p className="text-sm font-bold text-white">
-                            {court.priceNormal.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal">VND/giờ (Thường)</span>
+                            {court.priceNormal.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal">VND/{t('home.perHour')} ({t('booking.normalPrice')})</span>
                           </p>
                           <p className="text-xs font-bold text-amber-400">
-                            {court.pricePeak.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal italic">VND/giờ (Peak: {court.peakStart}-{court.peakEnd})</span>
+                            {court.pricePeak.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal italic">VND/{t('home.perHour')} (Peak: {court.peakStart}-{court.peakEnd})</span>
                           </p>
                         </div>
                       </motion.div>
@@ -279,7 +282,7 @@ export default function BookingFlow() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Ngày thi đấu</label>
+                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.date')}</label>
                         <div className="relative">
                           <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
                           <input
@@ -293,7 +296,7 @@ export default function BookingFlow() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Giờ bắt đầu</label>
+                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.startTime')}</label>
                         <div className="relative">
                           <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
                           <input
@@ -306,7 +309,7 @@ export default function BookingFlow() {
                       </div>
 
                       <div className="md:col-span-2 space-y-4">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Khung giờ gợi ý</label>
+                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.suggestedSlots')}</label>
                         {availability && (
                           <div className="flex flex-wrap gap-2">
                             {availability.slots.map((slot) => (
@@ -330,7 +333,7 @@ export default function BookingFlow() {
                       </div>
 
                       <div className="md:col-span-2 space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Thời lượng</label>
+                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.duration')}</label>
                         <div className="grid grid-cols-5 gap-2">
                           {[1, 1.5, 2, 2.5, 3].map((d) => (
                             <button
@@ -355,7 +358,7 @@ export default function BookingFlow() {
                         disabled={!court || !date || !time}
                         className="btn-primary group"
                       >
-                        Tiếp tục
+                        {t('booking.continue')}
                         <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                       </button>
                     </div>
@@ -369,25 +372,25 @@ export default function BookingFlow() {
                       <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                         <User size={20} />
                       </div>
-                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Thông tin khách hàng</h2>
+                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">{t('booking.customerInfo')}</h2>
                     </div>
 
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Họ và tên</label>
+                          <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.fullName')}</label>
                           <input
                             type="text"
                             value={customer.name}
                             onChange={(e) => setCustomer((p) => ({ ...p, name: e.target.value }))}
-                            placeholder="VD: Nguyễn Văn A"
+                            placeholder={t('auth.namePlaceholder')}
                             disabled={!!user}
                             className={`input-field ${user ? 'opacity-50 cursor-not-allowed' : ''}`}
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Số điện thoại</label>
+                          <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.phoneNumber')}</label>
                           <input
                             type="tel"
                             value={customer.phone}
@@ -400,7 +403,7 @@ export default function BookingFlow() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Email (không bắt buộc)</label>
+                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.emailOptional')}</label>
                         <input
                           type="email"
                           value={customer.email}
@@ -421,7 +424,7 @@ export default function BookingFlow() {
                             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-background">
                               <CreditCard size={16} />
                             </div>
-                            <span className="text-sm font-bold text-white uppercase tracking-tight">Ưu đãi thành viên</span>
+                            <span className="text-sm font-bold text-white uppercase tracking-tight">{t('booking.memberBenefits')}</span>
                           </div>
                           
                           <MemberSearch
@@ -446,7 +449,7 @@ export default function BookingFlow() {
                               }
                             }}
                             selectedMember={linkedMember}
-                            placeholder="Nhập SĐT hoặc email để hưởng ưu đãi..."
+                            placeholder={t('booking.memberSearchPlaceholder')}
                           />
                           
                           {linkedMember?.memberships?.[0] && (
@@ -462,8 +465,8 @@ export default function BookingFlow() {
                                 </span>
                               </div>
                               <div className="text-[10px] text-gray-400 font-medium">
-                                GIẢM GIÁ: <span className="text-primary">{linkedMember.memberships[0].plan === 'vip' ? 35 : linkedMember.memberships[0].plan === 'prime' ? 20 : 10}%</span> · 
-                                CREDIT: <span className="text-primary">{linkedMember.memberships[0].creditBalance.toLocaleString()} VND</span>
+                                {t('booking.discount')}: <span className="text-primary">{linkedMember.memberships[0].plan === 'vip' ? 35 : linkedMember.memberships[0].plan === 'prime' ? 20 : 10}%</span> ·
+                                {t('booking.credit')}: <span className="text-primary">{linkedMember.memberships[0].creditBalance.toLocaleString()} VND</span>
                               </div>
                             </motion.div>
                           )}
@@ -471,12 +474,12 @@ export default function BookingFlow() {
                       )}
 
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Ghi chú thêm</label>
+                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.additionalNotes')}</label>
                         <textarea
                           value={customer.note}
                           onChange={(e) => setCustomer((p) => ({ ...p, note: e.target.value }))}
                           rows={2}
-                          placeholder="VD: Cần thuê thêm vợt, mua nước..."
+                          placeholder={t('booking.notesPlaceholder')}
                           className="input-field resize-none h-24"
                         />
                       </div>
@@ -499,14 +502,14 @@ export default function BookingFlow() {
                         className="btn-secondary group"
                       >
                         <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                        Quay lại
+                        {t('booking.back')}
                       </button>
                       <button
                         onClick={nextStep}
                         disabled={!customer.name || (!user && !customer.phone)}
                         className="btn-primary group"
                       >
-                        Kiểm tra lại
+                        {t('booking.review')}
                         <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                       </button>
                     </div>
@@ -520,7 +523,7 @@ export default function BookingFlow() {
                       <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                         <CheckCircle2 size={20} />
                       </div>
-                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Xác nhận lịch đặt</h2>
+                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">{t('booking.confirmTitle')}</h2>
                     </div>
 
                     {apiError && (
@@ -538,48 +541,48 @@ export default function BookingFlow() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Court Summary */}
                         <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
-                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-3">Chi tiết sân</h4>
+                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-3">{t('booking.courtDetails')}</h4>
                           <div className="space-y-3">
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">Sân</span>
+                              <span className="text-xs text-gray-400">{t('booking.court')}</span>
                               <span className="text-xs font-bold text-white">{court.name}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">Thời gian</span>
+                              <span className="text-xs text-gray-400">{t('booking.time')}</span>
                               <span className="text-xs font-bold text-white">{time} ({duration}h)</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">Ngày</span>
+                              <span className="text-xs text-gray-400">{t('booking.dateLabel')}</span>
                               <span className="text-xs font-bold text-white">{date}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">Loại giờ</span>
-                              <span className={`text-xs font-bold ${isPeak ? 'text-amber-400' : 'text-primary'}`}>{isPeak ? 'Giờ cao điểm' : 'Giờ thường'}</span>
+                              <span className="text-xs text-gray-400">{t('booking.timeType')}</span>
+                              <span className={`text-xs font-bold ${isPeak ? 'text-amber-400' : 'text-primary'}`}>{isPeak ? t('booking.peakTime') : t('booking.normalTime')}</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Customer Summary */}
                         <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
-                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-3">Người đặt</h4>
+                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-3">{t('booking.bookerInfo')}</h4>
                           <div className="space-y-3">
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">Tên</span>
+                              <span className="text-xs text-gray-400">{t('booking.nameLabel')}</span>
                               <span className="text-xs font-bold text-white">{customer.name}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">SĐT</span>
+                              <span className="text-xs text-gray-400">{t('booking.phoneLabel')}</span>
                               <span className="text-xs font-bold text-white">{customer.phone}</span>
                             </div>
                             {customer.email && (
                               <div className="flex justify-between">
-                                <span className="text-xs text-gray-400">Email</span>
+                                <span className="text-xs text-gray-400">{t('booking.emailLabel')}</span>
                                 <span className="text-xs font-bold text-white truncate ml-4">{customer.email}</span>
                               </div>
                             )}
                             {customer.note && (
                               <div className="flex justify-between">
-                                <span className="text-xs text-gray-400">Ghi chú</span>
+                                <span className="text-xs text-gray-400">{t('booking.noteLabel')}</span>
                                 <span className="text-xs font-bold text-white truncate ml-4">{customer.note}</span>
                               </div>
                             )}
@@ -590,23 +593,23 @@ export default function BookingFlow() {
                       {/* Final Price */}
                       <div className="bg-primary/5 rounded-2xl p-8 border border-primary/20">
                         <div className="flex justify-between items-center mb-6">
-                          <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Tổng cộng</span>
+                          <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('booking.total')}</span>
                           <span className="text-3xl font-display font-black text-primary italic">{finalPrice.toLocaleString()} VND</span>
                         </div>
                         <div className="space-y-2 border-t border-primary/10 pt-4">
                           <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                            <span>Giá gốc</span>
+                            <span>{t('booking.basePrice')}</span>
                             <span>{basePrice.toLocaleString()} VND</span>
                           </div>
                           {membershipDiscount > 0 && (
                             <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-primary">
-                              <span>Ưu đãi thành viên</span>
+                              <span>{t('booking.memberDiscount')}</span>
                               <span>-{membershipDiscount.toLocaleString()} VND</span>
                             </div>
                           )}
                           {creditUsed > 0 && (
                             <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-secondary">
-                              <span>Credit đã dùng</span>
+                              <span>{t('booking.creditUsed')}</span>
                               <span>-{creditUsed.toLocaleString()} VND</span>
                             </div>
                           )}
@@ -621,7 +624,7 @@ export default function BookingFlow() {
                         disabled={submitting}
                       >
                         <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                        Quay lại
+                        {t('booking.back')}
                       </button>
                       <button
                         onClick={handleSubmit}
@@ -631,10 +634,10 @@ export default function BookingFlow() {
                         {submitting ? (
                           <>
                             <Spinner size={18} />
-                            Đang xử lý...
+                            {t('booking.submitting')}
                           </>
                         ) : (
-                          'Xác nhận đặt sân'
+                          t('booking.confirmBooking')
                         )}
                       </button>
                     </div>
