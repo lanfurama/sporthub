@@ -38,6 +38,17 @@ function LangSync({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <div className="bg-gradient" aria-hidden>
+        <div className="bg-blob bg-blob-emerald" />
+        <div className="bg-blob bg-blob-sky" />
+        <div className="bg-blob bg-blob-orange" />
+      </div>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-primary focus:text-primary-foreground focus:font-bold focus:shadow-sport"
+      >
+        Skip to main content
+      </a>
       <Routes>
         {/* Redirect root to /en */}
         <Route path="/" element={<Navigate to="/en" replace />} />

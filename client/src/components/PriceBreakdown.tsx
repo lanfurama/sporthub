@@ -1,11 +1,21 @@
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
+
 interface PriceBreakdownProps {
   basePrice: number;
   discountAmount?: number;
   creditUsed?: number;
   finalPrice: number;
   currency?: string;
-  isDark?: boolean;
 }
+
+const LOCALE_BY_LANG: Record<string, string> = {
+  en: 'en-US',
+  ko: 'ko-KR',
+  ja: 'ja-JP',
+  vi: 'vi-VN',
+  ru: 'ru-RU',
+};
 
 export default function PriceBreakdown({
   basePrice,
@@ -14,33 +24,46 @@ export default function PriceBreakdown({
   finalPrice,
   currency = 'VND',
 }: PriceBreakdownProps) {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN').format(price);
-  };
+  const { t } = useTranslation();
+  const { lang = 'en' } = useParams<{ lang: string }>();
+  const locale = LOCALE_BY_LANG[lang] ?? 'en-US';
+
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat(locale).format(price);
 
   return (
-    <div className="bg-bg-panel rounded-xl p-4 border border-border-dark">
-      <h4 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">Price Breakdown</h4>
-      <div className="space-y-2 text-sm">
+    <div className="sport-card p-5">
+      <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-ink-muted mb-4">
+        {t('booking.priceBreakdown', 'Price breakdown')}
+      </h4>
+      <div className="space-y-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted">Base price</span>
-          <span className="text-text-base">{formatPrice(basePrice)} {currency}</span>
+          <span className="text-ink-muted">{t('booking.basePrice', 'Base price')}</span>
+          <span className="text-ink font-medium tabular-nums">
+            {formatPrice(basePrice)} {currency}
+          </span>
         </div>
         {discountAmount > 0 && (
           <div className="flex justify-between">
-            <span className="text-green">Discount</span>
-            <span className="text-green">-{formatPrice(discountAmount)} {currency}</span>
+            <span className="text-status-success-text">{t('booking.discount', 'Discount')}</span>
+            <span className="text-status-success-text font-medium tabular-nums">
+              −{formatPrice(discountAmount)} {currency}
+            </span>
           </div>
         )}
         {creditUsed > 0 && (
           <div className="flex justify-between">
-            <span className="text-green">Credit used</span>
-            <span className="text-green">-{formatPrice(creditUsed)} {currency}</span>
+            <span className="text-info">{t('booking.creditUsed', 'Credit used')}</span>
+            <span className="text-info font-medium tabular-nums">
+              −{formatPrice(creditUsed)} {currency}
+            </span>
           </div>
         )}
-        <div className="border-t border-border-dark pt-2 flex justify-between font-semibold">
-          <span className="text-text-base">Total</span>
-          <span className="text-indigo">{formatPrice(finalPrice)} {currency}</span>
+        <div className="border-t border-border pt-3 flex justify-between items-baseline">
+          <span className="text-ink font-semibold">{t('booking.total', 'Total')}</span>
+          <span className="text-primary font-display text-xl font-bold tabular-nums">
+            {formatPrice(finalPrice)} {currency}
+          </span>
         </div>
       </div>
     </div>

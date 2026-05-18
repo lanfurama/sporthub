@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, Mail, Lock, ChevronRight, PlayCircle } from 'lucide-react';
+import { Mail, Lock, ChevronRight, Activity, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { authApi } from '../../api/auth';
 import { useAuthStore } from '../../store/auth.store';
@@ -39,92 +39,101 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
-      <div className="bg-shape shape-1 opacity-20" />
-      <div className="bg-shape shape-2 opacity-10" />
-
-      <div className="w-full max-w-[400px] relative z-10">
+    <div className="min-h-screen flex items-center justify-center px-4 md:px-6 py-12 bg-court-pattern">
+      <div className="w-full max-w-[420px]">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center mb-10"
+          className="flex flex-col items-center mb-8"
         >
-          <Link to={`/${lang}`} className="flex items-center gap-3 group mb-4">
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-neon"
-            >
-              <PlayCircle className="w-8 h-8 text-background" />
-            </motion.div>
-            <span className="text-2xl font-display font-black text-white tracking-tight">
-              SPORT<span className="text-primary italic">HUB</span>
+          <Link to={`/${lang}`} className="flex items-center gap-3 mb-3" aria-label="SportHub home">
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-sport">
+              <Activity className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
+            </div>
+            <span className="text-2xl font-display font-bold text-ink tracking-tight">
+              Sport<span className="text-primary">Hub</span>
             </span>
           </Link>
-          <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">{t('auth.platformTagline')}</p>
+          <p className="text-xs text-ink-muted font-semibold tracking-wide">
+            {t('auth.platformTagline')}
+          </p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="glass-card p-8 border-white/10 shadow-2xl relative overflow-hidden"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="sport-card p-6 md:p-8"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-5">
-            <Zap size={100} className="text-primary" />
-          </div>
-
-          <h2 className="text-2xl font-display font-bold text-white mb-2 uppercase tracking-tight">{t('auth.loginTitle')}</h2>
-          <p className="text-xs text-gray-500 mb-8 font-medium">{t('auth.loginSubtitle')}</p>
+          <h1 className="text-2xl font-display font-bold text-ink mb-1">{t('auth.loginTitle')}</h1>
+          <p className="text-sm text-ink-muted mb-6">{t('auth.loginSubtitle')}</p>
 
           {error && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="mb-6 px-4 py-3 rounded-xl bg-accent/10 border border-accent/20 text-accent text-xs font-bold"
+            <div
+              role="alert"
+              className="mb-5 flex items-start gap-2 px-3.5 py-3 rounded-xl bg-status-danger-bg border border-status-danger-border text-status-danger-text text-sm"
             >
-              {error}
-            </motion.div>
+              <AlertCircle size={16} className="mt-0.5 shrink-0" />
+              <span className="font-medium">{error}</span>
+            </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">{t('auth.email')}</label>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <div className="space-y-1.5">
+              <label htmlFor="login-email" className="text-xs font-bold text-ink-muted">
+                {t('auth.email')}
+              </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                <Mail
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
+                  size={16}
+                />
                 <input
+                  id="login-email"
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="name@example.com"
-                  className="input-field pl-12 py-3.5"
+                  className="input-field pl-10"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between ml-1">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('auth.password')}</label>
-                <span className="text-[10px] font-bold text-primary uppercase tracking-widest cursor-default opacity-50">{t('auth.forgotPassword')}</span>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label htmlFor="login-password" className="text-xs font-bold text-ink-muted">
+                  {t('auth.password')}
+                </label>
+                <Link
+                  to={`/${lang}/login`}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  className="text-xs font-bold text-ink-subtle pointer-events-none select-none"
+                >
+                  {t('auth.forgotPassword')}
+                </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                <Lock
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
+                  size={16}
+                />
                 <input
+                  id="login-password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="input-field pl-12 py-3.5"
+                  className="input-field pl-10"
                 />
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary py-4 mt-4 shadow-neon group"
-            >
+            <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
               {loading ? (
                 <>
                   <Spinner size={18} />
@@ -133,20 +142,26 @@ export default function LoginPage() {
               ) : (
                 <>
                   {t('auth.loginButton')}
-                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight size={18} />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-white/5 text-center">
-            <p className="text-xs text-gray-500 font-medium">
-              {t('auth.noAccount')} <Link to={`/${lang}/register`} className="text-primary font-bold hover:underline">{t('auth.registerLink')}</Link>
+          <div className="mt-6 pt-5 border-t border-border text-center">
+            <p className="text-sm text-ink-muted">
+              {t('auth.noAccount')}{' '}
+              <Link
+                to={`/${lang}/register`}
+                className="text-primary font-bold hover:text-primary-hover hover:underline"
+              >
+                {t('auth.registerLink')}
+              </Link>
             </p>
           </div>
         </motion.div>
 
-        <p className="mt-12 text-center text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">
+        <p className="mt-8 text-center text-[11px] text-ink-subtle font-medium">
           {t('auth.copyright')}
         </p>
       </div>

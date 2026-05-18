@@ -4,7 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, User, CheckCircle2, ChevronRight, ChevronLeft, CreditCard, Info } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  User,
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
+  CreditCard,
+  AlertCircle,
+} from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Spinner from '../../components/Spinner';
 import MemberSearch from '../../components/MemberSearch';
@@ -16,35 +25,58 @@ import type { Court, Member } from '../../types';
 
 const STEP_KEYS = ['booking.steps.courtInfo', 'booking.steps.yourInfo', 'booking.steps.confirm'];
 
-function StepIndicator({ current, t }: { current: number; t: any }) {
+const LOCALE_BY_LANG: Record<string, string> = {
+  en: 'en-US',
+  ko: 'ko-KR',
+  ja: 'ja-JP',
+  vi: 'vi-VN',
+  ru: 'ru-RU',
+};
+
+function formatPrice(price: number, lang: string) {
+  return new Intl.NumberFormat(LOCALE_BY_LANG[lang] ?? 'en-US').format(price);
+}
+
+function StepIndicator({
+  current,
+  t,
+}: {
+  current: number;
+  t: (key: string) => string;
+}) {
   return (
-    <div className="flex items-center justify-between max-w-md mx-auto mb-12 relative">
-      {/* Background Line */}
-      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/5 -translate-y-1/2 z-0" />
-
-      {/* Active Line */}
+    <div className="flex items-center justify-between max-w-md mx-auto mb-14 relative">
+      <div className="absolute top-5 left-5 right-5 h-1 bg-border rounded-full" aria-hidden />
       <motion.div
-        className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-0"
+        className="absolute top-5 left-5 h-1 bg-primary rounded-full"
         initial={{ width: '0%' }}
-        animate={{ width: `${(current / (STEP_KEYS.length - 1)) * 100}%` }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
+        animate={{ width: `calc(${(current / (STEP_KEYS.length - 1)) * 100}% - ${current === 0 ? '0px' : '0px'})` }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
+        aria-hidden
       />
-
       {STEP_KEYS.map((key, i) => {
         const state = i < current ? 'done' : i === current ? 'active' : 'future';
+        const isDoneOrActive = state === 'done' || state === 'active';
         return (
           <div key={key} className="relative z-10 flex flex-col items-center">
             <motion.div
               animate={{
-                scale: state === 'active' ? 1.2 : 1,
-                backgroundColor: state === 'done' || state === 'active' ? '#ccff00' : '#1c1c1f',
-                color: state === 'done' || state === 'active' ? '#0a0a0b' : '#6b7280'
+                scale: state === 'active' ? 1.1 : 1,
               }}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shadow-lg"
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors shadow-sport ${
+                isDoneOrActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-surface border border-border text-ink-subtle'
+              }`}
             >
-              {state === 'done' ? <CheckCircle2 size={20} /> : i + 1}
+              {state === 'done' ? <CheckCircle2 size={18} /> : i + 1}
             </motion.div>
-            <span className={`absolute top-12 whitespace-nowrap text-[10px] uppercase tracking-widest font-bold ${state === 'active' ? 'text-primary' : 'text-gray-500'}`}>
+            <span
+              className={`absolute top-12 whitespace-nowrap text-xs font-semibold ${
+                state === 'active' ? 'text-primary' : 'text-ink-muted'
+              }`}
+            >
               {t(key)}
             </span>
           </div>
@@ -90,13 +122,11 @@ export default function BookingFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  // Step 1 state
   const [courtId] = useState<number>(courtIdParam ? Number(courtIdParam) : 0);
   const [date, setDate] = useState(searchParams.get('date') ?? format(new Date(), 'yyyy-MM-dd'));
   const [time, setTime] = useState(searchParams.get('time') ?? '09:00');
   const [duration, setDuration] = useState(Number(searchParams.get('duration') ?? 1));
 
-  // Step 2 state
   const [customer, setCustomer] = useState<CustomerInfo>({
     name: user?.name ?? '',
     phone: user?.phone ?? '',
@@ -140,24 +170,33 @@ export default function BookingFlow() {
   const isPeak = court ? isPeakTime(time, court.peakStart, court.peakEnd) : false;
   const hourlyRate = court ? (isPeak ? court.pricePeak : court.priceNormal) : 0;
   const basePrice = hourlyRate * duration;
-  
+
   const membershipDiscount = linkedMember?.memberships?.[0]
-    ? Math.floor((basePrice * (linkedMember.memberships[0].plan === 'vip' ? 35 : linkedMember.memberships[0].plan === 'prime' ? 20 : 10)) / 100)
+    ? Math.floor(
+        (basePrice *
+          (linkedMember.memberships[0].plan === 'vip'
+            ? 35
+            : linkedMember.memberships[0].plan === 'prime'
+            ? 20
+            : 10)) /
+          100
+      )
     : 0;
-  
-  const creditUsed = customer.useCredit && linkedMember?.memberships?.[0]
-    ? Math.min(customer.creditAmount, basePrice - membershipDiscount)
-    : 0;
+
+  const creditUsed =
+    customer.useCredit && linkedMember?.memberships?.[0]
+      ? Math.min(customer.creditAmount, basePrice - membershipDiscount)
+      : 0;
   const finalPrice = Math.max(0, basePrice - membershipDiscount - creditUsed);
 
   const nextStep = () => {
     setDirection(1);
-    setStep(s => s + 1);
+    setStep((s) => s + 1);
   };
 
   const prevStep = () => {
     setDirection(-1);
-    setStep(s => s - 1);
+    setStep((s) => s - 1);
   };
 
   const handleSubmit = async () => {
@@ -175,7 +214,9 @@ export default function BookingFlow() {
           ...(customer.email ? { email: customer.email } : {}),
         },
         ...(linkedMember ? { memberId: linkedMember.id } : {}),
-        ...(customer.useCredit ? { useCredit: true, creditAmount: customer.creditAmount } : {}),
+        ...(customer.useCredit
+          ? { useCredit: true, creditAmount: customer.creditAmount }
+          : {}),
         ...(customer.useGuestPass ? { useGuestPass: true } : {}),
         ...(customer.note ? { note: customer.note } : {}),
       };
@@ -190,43 +231,28 @@ export default function BookingFlow() {
   };
 
   const variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 50 : -50,
-      opacity: 0
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 50 : -50,
-      opacity: 0
-    })
+    enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir < 0 ? 40 : -40, opacity: 0 }),
   };
 
   return (
     <div className="min-h-screen">
-      <div className="bg-shape shape-1 opacity-10" />
-      <div className="bg-shape shape-2 opacity-10" />
-      
       <Navbar />
-      
-      <main className="pt-32 pb-20 px-6">
+
+      <main className="pt-24 md:pt-32 pb-20 px-4 md:px-6">
         <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-4xl font-display font-black text-white mb-3">{t('booking.title')} <span className="text-primary italic">{t('booking.titleHighlight')}</span></h1>
-            <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">{t('booking.subtitle')}</p>
-          </motion.div>
+          <div className="text-center mb-10">
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-ink mb-2">
+              {t('booking.title')}{' '}
+              <span className="text-primary">{t('booking.titleHighlight')}</span>
+            </h1>
+            <p className="text-ink-muted text-sm">{t('booking.subtitle')}</p>
+          </div>
 
           <StepIndicator current={step} t={t} />
 
-          <div className="relative mt-20">
+          <div className="relative mt-16">
             <AnimatePresence custom={direction} mode="wait">
               <motion.div
                 key={step}
@@ -235,131 +261,165 @@ export default function BookingFlow() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="w-full"
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
               >
-                {/* Step 0: Court Info */}
+                {/* Step 0: Court & Schedule */}
                 {step === 0 && (
-                  <div className="glass-card p-8 border-white/10">
-                    <div className="flex items-center gap-3 mb-8">
-                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                  <div className="sport-card p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center text-primary">
                         <Calendar size={20} />
                       </div>
-                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">{t('booking.courtSchedule')}</h2>
+                      <h2 className="text-lg md:text-xl font-display font-bold text-ink">
+                        {t('booking.courtSchedule')}
+                      </h2>
                     </div>
 
                     {courtLoading && (
-                      <div className="flex justify-center py-12">
-                        <Spinner size={40} />
+                      <div className="flex justify-center py-12 text-primary">
+                        <Spinner size={36} />
                       </div>
                     )}
 
                     {court && (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-surface-lighter flex items-center justify-center text-primary font-black text-lg border border-white/5">
+                      <div className="bg-surface-muted rounded-2xl p-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-display font-bold text-xl shadow-sport">
                             {court.name.charAt(0)}
                           </div>
                           <div>
-                            <h3 className="font-display font-bold text-white text-lg">{court.name}</h3>
-                            <p className="text-[10px] uppercase font-bold text-primary tracking-widest">{court.sport}</p>
+                            <h3 className="font-display font-bold text-ink text-lg">
+                              {court.name}
+                            </h3>
+                            <p className="text-xs font-bold text-primary uppercase tracking-wider">
+                              {court.sport}
+                            </p>
                           </div>
                         </div>
-                        <div className="flex flex-col md:items-end gap-1">
-                          <p className="text-sm font-bold text-white">
-                            {court.priceNormal.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal">VND/{t('home.perHour')} ({t('booking.normalPrice')})</span>
+                        <div className="flex flex-col md:items-end gap-1 text-sm">
+                          <p className="font-bold text-ink tabular-nums">
+                            {formatPrice(court.priceNormal, lang)}{' '}
+                            <span className="text-xs text-ink-muted font-normal">
+                              VND/{t('home.perHour')} ({t('booking.normalPrice')})
+                            </span>
                           </p>
-                          <p className="text-xs font-bold text-amber-400">
-                            {court.pricePeak.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal italic">VND/{t('home.perHour')} (Peak: {court.peakStart}-{court.peakEnd})</span>
+                          <p className="font-bold text-accent tabular-nums">
+                            {formatPrice(court.pricePeak, lang)}{' '}
+                            <span className="text-xs text-ink-muted font-normal">
+                              VND/{t('home.perHour')} (Peak {court.peakStart}–{court.peakEnd})
+                            </span>
                           </p>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.date')}</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-1.5">
+                        <label htmlFor="bf-date" className="text-xs font-bold text-ink-muted">
+                          {t('booking.date')}
+                        </label>
                         <div className="relative">
-                          <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                          <Calendar
+                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
+                            size={16}
+                          />
                           <input
+                            id="bf-date"
                             type="date"
                             value={date}
                             min={format(new Date(), 'yyyy-MM-dd')}
                             onChange={(e) => setDate(e.target.value)}
-                            className="input-field pl-12 py-3.5"
+                            className="input-field pl-10"
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.startTime')}</label>
+                      <div className="space-y-1.5">
+                        <label htmlFor="bf-time" className="text-xs font-bold text-ink-muted">
+                          {t('booking.startTime')}
+                        </label>
                         <div className="relative">
-                          <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                          <Clock
+                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
+                            size={16}
+                          />
                           <input
+                            id="bf-time"
                             type="time"
                             value={time}
                             onChange={(e) => setTime(e.target.value)}
-                            className="input-field pl-12 py-3.5"
+                            className="input-field pl-10"
                           />
                         </div>
                       </div>
 
-                      <div className="md:col-span-2 space-y-4">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.suggestedSlots')}</label>
+                      <div className="md:col-span-2 space-y-2.5">
+                        <label className="text-xs font-bold text-ink-muted">
+                          {t('booking.suggestedSlots')}
+                        </label>
                         {availability && (
                           <div className="flex flex-wrap gap-2">
-                            {availability.slots.map((slot) => (
-                              <button
-                                key={slot.time}
-                                onClick={() => slot.available && setTime(slot.time)}
-                                disabled={!slot.available}
-                                className={`text-[11px] font-bold px-4 py-2 rounded-xl border transition-all ${
-                                  time === slot.time
-                                    ? 'bg-primary text-background border-primary shadow-neon'
-                                    : slot.available
-                                    ? 'bg-white/5 border-white/10 text-gray-400 hover:border-primary/50 hover:text-white'
-                                    : 'opacity-20 border-white/5 text-gray-600 cursor-not-allowed line-through'
-                                }`}
-                              >
-                                {slot.time}
-                              </button>
-                            ))}
+                            {availability.slots.map((slot) => {
+                              const active = time === slot.time;
+                              return (
+                                <button
+                                  key={slot.time}
+                                  type="button"
+                                  onClick={() => slot.available && setTime(slot.time)}
+                                  disabled={!slot.available}
+                                  aria-pressed={active}
+                                  className={`h-11 px-3.5 min-w-[68px] rounded-xl text-sm font-semibold border transition-colors tabular-nums ${
+                                    active
+                                      ? 'bg-primary text-primary-foreground border-primary shadow-sport'
+                                      : slot.available
+                                      ? 'bg-surface border-border text-ink hover:border-primary/50 hover:bg-primary/5'
+                                      : 'bg-surface-muted border-border text-ink-subtle opacity-50 cursor-not-allowed line-through'
+                                  }`}
+                                >
+                                  {slot.time}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
 
-                      <div className="md:col-span-2 space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.duration')}</label>
+                      <div className="md:col-span-2 space-y-2.5">
+                        <label className="text-xs font-bold text-ink-muted">
+                          {t('booking.duration')}
+                        </label>
                         <div className="grid grid-cols-5 gap-2">
-                          {[1, 1.5, 2, 2.5, 3].map((d) => (
-                            <button
-                              key={d}
-                              onClick={() => setDuration(d)}
-                              className={`py-3 rounded-xl text-xs font-bold transition-all border ${
-                                duration === d 
-                                  ? 'bg-primary text-background border-primary shadow-neon' 
-                                  : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
-                              }`}
-                            >
-                              {d}h
-                            </button>
-                          ))}
+                          {[1, 1.5, 2, 2.5, 3].map((d) => {
+                            const active = duration === d;
+                            return (
+                              <button
+                                key={d}
+                                type="button"
+                                onClick={() => setDuration(d)}
+                                aria-pressed={active}
+                                className={`h-11 rounded-xl text-sm font-bold transition-colors border ${
+                                  active
+                                    ? 'bg-primary text-primary-foreground border-primary shadow-sport'
+                                    : 'bg-surface border-border text-ink hover:border-primary/40'
+                                }`}
+                              >
+                                {d}h
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-12 flex justify-end">
+                    <div className="mt-10 flex justify-end">
                       <button
+                        type="button"
                         onClick={nextStep}
                         disabled={!court || !date || !time}
-                        className="btn-primary group"
+                        className="btn-primary"
                       >
                         {t('booking.continue')}
-                        <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                        <ChevronRight size={18} />
                       </button>
                     </div>
                   </div>
@@ -367,66 +427,87 @@ export default function BookingFlow() {
 
                 {/* Step 1: Your Info */}
                 {step === 1 && (
-                  <div className="glass-card p-8 border-white/10">
-                    <div className="flex items-center gap-3 mb-8">
-                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                  <div className="sport-card p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center text-primary">
                         <User size={20} />
                       </div>
-                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">{t('booking.customerInfo')}</h2>
+                      <h2 className="text-lg md:text-xl font-display font-bold text-ink">
+                        {t('booking.customerInfo')}
+                      </h2>
                     </div>
 
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.fullName')}</label>
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label htmlFor="bf-name" className="text-xs font-bold text-ink-muted">
+                            {t('booking.fullName')}
+                          </label>
                           <input
+                            id="bf-name"
                             type="text"
                             value={customer.name}
-                            onChange={(e) => setCustomer((p) => ({ ...p, name: e.target.value }))}
+                            onChange={(e) =>
+                              setCustomer((p) => ({ ...p, name: e.target.value }))
+                            }
                             placeholder={t('auth.namePlaceholder')}
                             disabled={!!user}
-                            className={`input-field ${user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`input-field ${
+                              user ? 'opacity-60 cursor-not-allowed' : ''
+                            }`}
                           />
                         </div>
 
-                        <div className="space-y-2">
-                          <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.phoneNumber')}</label>
+                        <div className="space-y-1.5">
+                          <label htmlFor="bf-phone" className="text-xs font-bold text-ink-muted">
+                            {t('booking.phoneNumber')}
+                          </label>
                           <input
+                            id="bf-phone"
                             type="tel"
                             value={customer.phone}
-                            onChange={(e) => setCustomer((p) => ({ ...p, phone: e.target.value }))}
+                            onChange={(e) =>
+                              setCustomer((p) => ({ ...p, phone: e.target.value }))
+                            }
                             placeholder="09xx xxx xxx"
                             disabled={!!user}
-                            className={`input-field ${user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`input-field ${
+                              user ? 'opacity-60 cursor-not-allowed' : ''
+                            }`}
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.emailOptional')}</label>
+                      <div className="space-y-1.5">
+                        <label htmlFor="bf-email" className="text-xs font-bold text-ink-muted">
+                          {t('booking.emailOptional')}
+                        </label>
                         <input
+                          id="bf-email"
                           type="email"
                           value={customer.email}
-                          onChange={(e) => setCustomer((p) => ({ ...p, email: e.target.value }))}
+                          onChange={(e) =>
+                            setCustomer((p) => ({ ...p, email: e.target.value }))
+                          }
                           placeholder="example@gmail.com"
                           disabled={!!user}
-                          className={`input-field ${user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`input-field ${
+                            user ? 'opacity-60 cursor-not-allowed' : ''
+                          }`}
                         />
                       </div>
 
                       {!user && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="bg-primary/5 border border-primary/20 rounded-2xl p-6"
-                        >
+                        <div className="bg-primary-subtle border border-primary/30 rounded-2xl p-5">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-background">
+                            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
                               <CreditCard size={16} />
                             </div>
-                            <span className="text-sm font-bold text-white uppercase tracking-tight">{t('booking.memberBenefits')}</span>
+                            <span className="text-sm font-bold text-ink">
+                              {t('booking.memberBenefits')}
+                            </span>
                           </div>
-                          
+
                           <MemberSearch
                             onSelect={(member) => {
                               setLinkedMember(member);
@@ -451,41 +532,56 @@ export default function BookingFlow() {
                             selectedMember={linkedMember}
                             placeholder={t('booking.memberSearchPlaceholder')}
                           />
-                          
+
                           {linkedMember?.memberships?.[0] && (
-                            <motion.div 
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              className="mt-4 bg-background/50 rounded-xl p-4 border border-white/5"
-                            >
+                            <div className="mt-4 bg-surface rounded-xl p-4 border border-border">
                               <div className="flex justify-between items-center mb-2">
-                                <span className="text-xs font-bold text-white">{linkedMember.name}</span>
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-primary text-background font-black uppercase">
-                                  {linkedMember.memberships[0].plan}
+                                <span className="text-sm font-bold text-ink">
+                                  {linkedMember.name}
+                                </span>
+                                <span className="chip bg-primary text-primary-foreground border-primary">
+                                  {linkedMember.memberships[0].plan.toUpperCase()}
                                 </span>
                               </div>
-                              <div className="text-[10px] text-gray-400 font-medium">
-                                {t('booking.discount')}: <span className="text-primary">{linkedMember.memberships[0].plan === 'vip' ? 35 : linkedMember.memberships[0].plan === 'prime' ? 20 : 10}%</span> ·
-                                {t('booking.credit')}: <span className="text-primary">{linkedMember.memberships[0].creditBalance.toLocaleString()} VND</span>
+                              <div className="text-xs text-ink-muted">
+                                {t('booking.discount')}:{' '}
+                                <span className="text-primary font-bold">
+                                  {linkedMember.memberships[0].plan === 'vip'
+                                    ? 35
+                                    : linkedMember.memberships[0].plan === 'prime'
+                                    ? 20
+                                    : 10}
+                                  %
+                                </span>{' '}
+                                · {t('booking.credit')}:{' '}
+                                <span className="text-primary font-bold tabular-nums">
+                                  {formatPrice(linkedMember.memberships[0].creditBalance, lang)}{' '}
+                                  VND
+                                </span>
                               </div>
-                            </motion.div>
+                            </div>
                           )}
-                        </motion.div>
+                        </div>
                       )}
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">{t('booking.additionalNotes')}</label>
+                      <div className="space-y-1.5">
+                        <label htmlFor="bf-note" className="text-xs font-bold text-ink-muted">
+                          {t('booking.additionalNotes')}
+                        </label>
                         <textarea
+                          id="bf-note"
                           value={customer.note}
-                          onChange={(e) => setCustomer((p) => ({ ...p, note: e.target.value }))}
-                          rows={2}
+                          onChange={(e) =>
+                            setCustomer((p) => ({ ...p, note: e.target.value }))
+                          }
+                          rows={3}
                           placeholder={t('booking.notesPlaceholder')}
-                          className="input-field resize-none h-24"
+                          className="input-field resize-none"
                         />
                       </div>
 
                       {court && (
-                        <div className="pt-6">
+                        <div className="pt-2">
                           <PriceBreakdown
                             basePrice={basePrice}
                             discountAmount={membershipDiscount}
@@ -496,21 +592,19 @@ export default function BookingFlow() {
                       )}
                     </div>
 
-                    <div className="mt-12 flex justify-between">
-                      <button
-                        onClick={prevStep}
-                        className="btn-secondary group"
-                      >
-                        <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                    <div className="mt-10 flex flex-col sm:flex-row justify-between gap-3">
+                      <button type="button" onClick={prevStep} className="btn-secondary">
+                        <ChevronLeft size={18} />
                         {t('booking.back')}
                       </button>
                       <button
+                        type="button"
                         onClick={nextStep}
                         disabled={!customer.name || (!user && !customer.phone)}
-                        className="btn-primary group"
+                        className="btn-primary"
                       >
                         {t('booking.review')}
-                        <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                        <ChevronRight size={18} />
                       </button>
                     </div>
                   </div>
@@ -518,118 +612,156 @@ export default function BookingFlow() {
 
                 {/* Step 2: Review */}
                 {step === 2 && court && (
-                  <div className="glass-card p-8 border-white/10">
-                    <div className="flex items-center gap-3 mb-8">
-                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                  <div className="sport-card p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center text-primary">
                         <CheckCircle2 size={20} />
                       </div>
-                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">{t('booking.confirmTitle')}</h2>
+                      <h2 className="text-lg md:text-xl font-display font-bold text-ink">
+                        {t('booking.confirmTitle')}
+                      </h2>
                     </div>
 
                     {apiError && (
-                      <motion.div 
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="mb-6 px-4 py-3 rounded-xl bg-accent/10 border border-accent/20 text-accent text-sm font-bold flex items-center gap-2"
+                      <div
+                        role="alert"
+                        className="mb-5 flex items-start gap-2 px-3.5 py-3 rounded-xl bg-status-danger-bg border border-status-danger-border text-status-danger-text text-sm"
                       >
-                        <Info size={18} />
-                        {apiError}
-                      </motion.div>
+                        <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                        <span className="font-medium">{apiError}</span>
+                      </div>
                     )}
 
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Court Summary */}
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
-                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-3">{t('booking.courtDetails')}</h4>
-                          <div className="space-y-3">
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-surface-muted rounded-2xl p-5 space-y-3">
+                          <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-border pb-2.5">
+                            {t('booking.courtDetails')}
+                          </h4>
+                          <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">{t('booking.court')}</span>
-                              <span className="text-xs font-bold text-white">{court.name}</span>
+                              <span className="text-ink-muted">{t('booking.court')}</span>
+                              <span className="font-semibold text-ink">{court.name}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">{t('booking.time')}</span>
-                              <span className="text-xs font-bold text-white">{time} ({duration}h)</span>
+                              <span className="text-ink-muted">{t('booking.time')}</span>
+                              <span className="font-semibold text-ink tabular-nums">
+                                {time} ({duration}h)
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">{t('booking.dateLabel')}</span>
-                              <span className="text-xs font-bold text-white">{date}</span>
+                              <span className="text-ink-muted">{t('booking.dateLabel')}</span>
+                              <span className="font-semibold text-ink tabular-nums">{date}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">{t('booking.timeType')}</span>
-                              <span className={`text-xs font-bold ${isPeak ? 'text-amber-400' : 'text-primary'}`}>{isPeak ? t('booking.peakTime') : t('booking.normalTime')}</span>
+                              <span className="text-ink-muted">{t('booking.timeType')}</span>
+                              <span
+                                className={`font-bold ${
+                                  isPeak ? 'text-accent' : 'text-primary'
+                                }`}
+                              >
+                                {isPeak ? t('booking.peakTime') : t('booking.normalTime')}
+                              </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Customer Summary */}
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
-                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-3">{t('booking.bookerInfo')}</h4>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">{t('booking.nameLabel')}</span>
-                              <span className="text-xs font-bold text-white">{customer.name}</span>
+                        <div className="bg-surface-muted rounded-2xl p-5 space-y-3">
+                          <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-border pb-2.5">
+                            {t('booking.bookerInfo')}
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between gap-3">
+                              <span className="text-ink-muted shrink-0">
+                                {t('booking.nameLabel')}
+                              </span>
+                              <span className="font-semibold text-ink truncate">
+                                {customer.name}
+                              </span>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-xs text-gray-400">{t('booking.phoneLabel')}</span>
-                              <span className="text-xs font-bold text-white">{customer.phone}</span>
+                            <div className="flex justify-between gap-3">
+                              <span className="text-ink-muted shrink-0">
+                                {t('booking.phoneLabel')}
+                              </span>
+                              <span className="font-semibold text-ink truncate">
+                                {customer.phone}
+                              </span>
                             </div>
                             {customer.email && (
-                              <div className="flex justify-between">
-                                <span className="text-xs text-gray-400">{t('booking.emailLabel')}</span>
-                                <span className="text-xs font-bold text-white truncate ml-4">{customer.email}</span>
+                              <div className="flex justify-between gap-3">
+                                <span className="text-ink-muted shrink-0">
+                                  {t('booking.emailLabel')}
+                                </span>
+                                <span className="font-semibold text-ink truncate">
+                                  {customer.email}
+                                </span>
                               </div>
                             )}
                             {customer.note && (
-                              <div className="flex justify-between">
-                                <span className="text-xs text-gray-400">{t('booking.noteLabel')}</span>
-                                <span className="text-xs font-bold text-white truncate ml-4">{customer.note}</span>
+                              <div className="flex justify-between gap-3">
+                                <span className="text-ink-muted shrink-0">
+                                  {t('booking.noteLabel')}
+                                </span>
+                                <span className="font-semibold text-ink truncate">
+                                  {customer.note}
+                                </span>
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Final Price */}
-                      <div className="bg-primary/5 rounded-2xl p-8 border border-primary/20">
-                        <div className="flex justify-between items-center mb-6">
-                          <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('booking.total')}</span>
-                          <span className="text-3xl font-display font-black text-primary italic">{finalPrice.toLocaleString()} VND</span>
+                      <div className="bg-primary-subtle rounded-2xl p-6 border border-primary/30">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="text-sm font-bold text-ink-muted uppercase tracking-wider">
+                            {t('booking.total')}
+                          </span>
+                          <span className="font-display font-bold text-3xl text-primary tabular-nums">
+                            {formatPrice(finalPrice, lang)} VND
+                          </span>
                         </div>
-                        <div className="space-y-2 border-t border-primary/10 pt-4">
-                          <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                        <div className="space-y-1.5 border-t border-primary/20 pt-3 text-xs">
+                          <div className="flex justify-between text-ink-muted">
                             <span>{t('booking.basePrice')}</span>
-                            <span>{basePrice.toLocaleString()} VND</span>
+                            <span className="tabular-nums">
+                              {formatPrice(basePrice, lang)} VND
+                            </span>
                           </div>
                           {membershipDiscount > 0 && (
-                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-primary">
+                            <div className="flex justify-between text-status-success-text font-semibold">
                               <span>{t('booking.memberDiscount')}</span>
-                              <span>-{membershipDiscount.toLocaleString()} VND</span>
+                              <span className="tabular-nums">
+                                −{formatPrice(membershipDiscount, lang)} VND
+                              </span>
                             </div>
                           )}
                           {creditUsed > 0 && (
-                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-secondary">
+                            <div className="flex justify-between text-info font-semibold">
                               <span>{t('booking.creditUsed')}</span>
-                              <span>-{creditUsed.toLocaleString()} VND</span>
+                              <span className="tabular-nums">
+                                −{formatPrice(creditUsed, lang)} VND
+                              </span>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-12 flex justify-between">
+                    <div className="mt-10 flex flex-col sm:flex-row justify-between gap-3">
                       <button
+                        type="button"
                         onClick={prevStep}
-                        className="btn-secondary group"
+                        className="btn-secondary"
                         disabled={submitting}
                       >
-                        <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                        <ChevronLeft size={18} />
                         {t('booking.back')}
                       </button>
                       <button
+                        type="button"
                         onClick={handleSubmit}
                         disabled={submitting}
-                        className="btn-primary min-w-[200px]"
+                        className="btn-primary sm:min-w-[200px]"
                       >
                         {submitting ? (
                           <>

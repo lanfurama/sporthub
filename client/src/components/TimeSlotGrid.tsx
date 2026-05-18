@@ -26,26 +26,37 @@ export default function TimeSlotGrid({
         const peak = isPeak(slot);
         const selectedSlot = isSelected(slot);
 
-        let className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ';
+        let cls =
+          'inline-flex items-center gap-1.5 px-3 h-11 min-w-[68px] justify-center rounded-xl text-sm font-semibold transition-colors border ';
         if (booked) {
-          className += 'bg-bg-deep border-border-dark text-muted cursor-not-allowed opacity-50';
+          cls +=
+            'bg-surface-muted border-border text-ink-subtle cursor-not-allowed opacity-50';
         } else if (selectedSlot) {
-          className += 'bg-green border-green text-white';
+          cls += 'bg-primary border-primary text-primary-foreground shadow-sport';
         } else if (peak) {
-          className += 'bg-amber/10 border-amber/30 text-amber hover:bg-amber/20';
+          cls +=
+            'bg-accent/10 border-accent/40 text-accent hover:bg-accent/15 cursor-pointer';
         } else {
-          className += 'bg-bg-deep border-border-dark text-text-base hover:border-indigo/40 hover:bg-bg-panel cursor-pointer';
+          cls +=
+            'bg-surface border-border text-ink hover:border-primary/50 hover:bg-primary/5 cursor-pointer';
         }
 
         return (
           <button
             key={slot}
+            type="button"
             onClick={() => !booked && onSelect(slot)}
             disabled={booked}
-            className={className}
+            aria-pressed={selectedSlot}
+            aria-label={`${slot}${peak ? ' (peak hour)' : ''}${booked ? ' (booked)' : ''}`}
+            className={cls}
           >
-            {slot}
-            {peak && !booked && <span className="ml-1 text-[10px]">PEAK</span>}
+            <span className="tabular-nums">{slot}</span>
+            {peak && !booked && (
+              <span className="text-[9px] font-bold uppercase tracking-wider opacity-80">
+                Peak
+              </span>
+            )}
           </button>
         );
       })}

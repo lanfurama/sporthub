@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { LogOut, LayoutDashboard, PlayCircle } from 'lucide-react';
+import { LogOut, LayoutDashboard, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -15,19 +15,13 @@ export default function Navbar() {
   const backgroundColor = useTransform(
     scrollY,
     [0, 50],
-    ['rgba(10, 10, 11, 0)', 'rgba(18, 18, 20, 0.8)']
+    ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.92)']
   );
 
-  const backdropBlur = useTransform(
+  const boxShadow = useTransform(
     scrollY,
     [0, 50],
-    ['blur(0px)', 'blur(12px)']
-  );
-
-  const borderBottom = useTransform(
-    scrollY,
-    [0, 50],
-    ['1px solid rgba(255, 255, 255, 0)', '1px solid rgba(255, 255, 255, 0.05)']
+    ['0 0 0 0 rgba(0,0,0,0)', '0 4px 16px -2px rgba(15, 23, 42, 0.08)']
   );
 
   const handleLogout = () => {
@@ -37,50 +31,51 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      style={{ backgroundColor, backdropFilter: backdropBlur, borderBottom }}
-      className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center px-6 transition-all"
+      style={{ backgroundColor, boxShadow, backdropFilter: 'blur(12px)' }}
+      className="fixed top-0 left-0 right-0 z-50 h-16 md:h-20 flex items-center px-4 md:px-6 border-b border-border/60"
     >
       <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Logo */}
-        <Link to={`/${lang}`} className="flex items-center gap-2 group">
+        <Link to={`/${lang}`} className="flex items-center gap-2.5 group" aria-label="SportHub home">
           <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-neon"
+            whileHover={{ scale: 1.05, rotate: -6 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+            className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-sport"
           >
-            <PlayCircle className="w-6 h-6 text-background" />
+            <Activity className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
           </motion.div>
-          <span className="text-xl font-display font-bold text-white tracking-tight">
-            SPORT<span className="text-primary">HUB</span>
+          <span className="text-xl font-display font-bold text-ink tracking-tight">
+            Sport<span className="text-primary">Hub</span>
           </span>
         </Link>
 
         {/* Nav Links */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-7">
           <Link
             to={`/${lang}`}
-            className="text-gray-400 hover:text-primary text-sm font-semibold tracking-wide uppercase transition-colors"
+            className="text-ink-muted hover:text-ink text-sm font-semibold transition-colors"
           >
             {t('nav.home')}
           </Link>
           <Link
             to={`/${lang}/book`}
-            className="text-gray-400 hover:text-primary text-sm font-semibold tracking-wide uppercase transition-colors"
+            className="text-ink-muted hover:text-ink text-sm font-semibold transition-colors"
           >
             {t('nav.bookNow')}
           </Link>
         </div>
 
-        {/* Auth section + Language Switcher */}
-        <div className="flex items-center gap-3">
+        {/* Auth + Language */}
+        <div className="flex items-center gap-2">
           <LanguageSwitcher />
 
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="hidden sm:flex flex-col items-end mr-2">
-                <span className="text-sm font-semibold text-white leading-none">
+                <span className="text-sm font-semibold text-ink leading-none">
                   {user.name}
                 </span>
-                <span className="text-[10px] text-primary uppercase tracking-widest font-bold mt-1">
+                <span className="text-[10px] text-primary uppercase tracking-[0.15em] font-bold mt-1">
                   {user.role}
                 </span>
               </div>
@@ -88,25 +83,27 @@ export default function Navbar() {
               {(user.role === 'admin' || user.role === 'super_admin' || user.role === 'staff') && (
                 <Link
                   to="/admin/dashboard"
-                  className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-primary hover:border-primary/30 transition-all"
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-surface border border-border text-ink-muted hover:text-primary hover:border-primary/40 transition-all"
+                  aria-label={t('nav.dashboard')}
                   title={t('nav.dashboard')}
                 >
-                  <LayoutDashboard size={20} />
+                  <LayoutDashboard size={18} />
                 </Link>
               )}
 
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-accent hover:border-accent/30 transition-all"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-surface border border-border text-ink-muted hover:text-accent hover:border-accent/40 transition-all"
+                aria-label={t('nav.logout')}
                 title={t('nav.logout')}
               >
-                <LogOut size={20} />
+                <LogOut size={18} />
               </button>
             </div>
           ) : (
             <Link
               to={`/${lang}/login`}
-              className="btn-primary"
+              className="btn-primary text-sm px-4 py-2"
             >
               {t('nav.login')}
             </Link>

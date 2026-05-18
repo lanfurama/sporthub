@@ -1,0 +1,64 @@
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "SportHub home" [ref=e7] [cursor=pointer]:
+          - /url: /en
+          - img [ref=e9]
+          - generic [ref=e11]: SportHub
+        - generic [ref=e12]:
+          - link "Home" [ref=e13] [cursor=pointer]:
+            - /url: /en
+          - link "Book Now" [ref=e14] [cursor=pointer]:
+            - /url: /en/book
+        - generic [ref=e15]:
+          - button "Change language" [ref=e17] [cursor=pointer]:
+            - img [ref=e18]
+            - generic [ref=e21]: 🇺🇸 EN
+          - link "Login" [ref=e22] [cursor=pointer]:
+            - /url: /en/login
+    - main [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - heading "BOOK NOW" [level=1] [ref=e26]
+          - paragraph [ref=e27]: Complete the steps to confirm your booking
+        - generic [ref=e28]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: "1"
+            - generic [ref=e32]: Court Info
+          - generic [ref=e33]:
+            - generic [ref=e34]: "2"
+            - generic [ref=e35]: Your Info
+          - generic [ref=e36]:
+            - generic [ref=e37]: "3"
+            - generic [ref=e38]: Confirm
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - img [ref=e44]
+            - heading "Court Info & Schedule" [level=2] [ref=e46]
+          - status "Loading" [ref=e48]
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - text: Match Date
+              - generic [ref=e53]:
+                - img
+                - textbox "Match Date" [ref=e54]: 2026-05-19
+            - generic [ref=e55]:
+              - text: Start Time
+              - generic [ref=e56]:
+                - img
+                - textbox "Start Time" [ref=e57]: 10:00
+            - generic [ref=e58]: Suggested Time Slots
+            - generic [ref=e59]:
+              - text: Duration
+              - generic [ref=e60]:
+                - button "1h" [pressed] [ref=e61] [cursor=pointer]
+                - button "1.5h" [ref=e62] [cursor=pointer]
+                - button "2h" [ref=e63] [cursor=pointer]
+                - button "2.5h" [ref=e64] [cursor=pointer]
+                - button "3h" [ref=e65] [cursor=pointer]
+          - button "Continue" [disabled] [ref=e67]:
+            - text: Continue
+            - img [ref=e68]

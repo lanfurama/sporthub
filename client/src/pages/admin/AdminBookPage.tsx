@@ -365,7 +365,7 @@ export default function AdminBookPage() {
                     discountAmount={membershipDiscount}
                     creditUsed={creditUsed}
                     finalPrice={finalPrice}
-                    isDark={true}
+
                   />
                 </div>
               )}

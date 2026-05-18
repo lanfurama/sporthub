@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import { Search, X } from 'lucide-react';
 import { membersApi } from '../api/members';
 import type { Member } from '../types';
 import Spinner from './Spinner';
@@ -10,7 +12,8 @@ interface MemberSearchProps {
   placeholder?: string;
 }
 
-export default function MemberSearch({ onSelect, selectedMember, placeholder = 'Tìm thành viên...' }: MemberSearchProps) {
+export default function MemberSearch({ onSelect, selectedMember, placeholder }: MemberSearchProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -41,6 +44,7 @@ export default function MemberSearch({ onSelect, selectedMember, placeholder = '
   return (
     <div className="relative">
       <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle" size={16} />
         <input
           type="text"
           value={search}
@@ -49,25 +53,25 @@ export default function MemberSearch({ onSelect, selectedMember, placeholder = '
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          placeholder={placeholder}
-          className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-bg-deep text-text-base text-sm focus:outline-none focus:border-indigo transition-colors"
+          placeholder={placeholder ?? t('booking.searchMemberPlaceholder', 'Search member…')}
+          className="input-field pl-10 pr-10"
         />
         {selectedMember && (
           <button
+            type="button"
             onClick={handleClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-text-base"
+            aria-label="Clear selection"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 inline-flex items-center justify-center text-ink-subtle hover:text-ink rounded-md hover:bg-surface-muted"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-            </svg>
+            <X size={16} />
           </button>
         )}
       </div>
 
       {isOpen && search.length >= 2 && (
-        <div className="absolute z-50 w-full mt-1 bg-bg-card border border-border-dark rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-2 bg-surface border border-border rounded-xl shadow-sport-lg max-h-60 overflow-y-auto">
           {isLoading ? (
-            <div className="p-4 flex justify-center">
+            <div className="p-4 flex justify-center text-primary">
               <Spinner size={20} />
             </div>
           ) : members?.data && members.data.length > 0 ? (
@@ -75,23 +79,32 @@ export default function MemberSearch({ onSelect, selectedMember, placeholder = '
               {members.data.map((member) => (
                 <button
                   key={member.id}
+                  type="button"
                   onClick={() => handleSelect(member)}
-                  className="w-full px-4 py-2 text-left hover:bg-bg-panel transition-colors"
+                  className="w-full px-4 py-2.5 text-left hover:bg-surface-muted transition-colors"
                 >
-                  <div className="text-sm font-medium text-text-base">{member.name}</div>
+                  <div className="text-sm font-semibold text-ink">{member.name}</div>
                   {member.phone && (
-                    <div className="text-xs text-muted">{member.phone}</div>
+                    <div className="text-xs text-ink-muted">{member.phone}</div>
                   )}
                   {member.memberships && member.memberships.length > 0 && (
-                    <div className="text-xs text-muted">
-                      {member.memberships[0].plan.toUpperCase()} - {member.memberships[0].creditBalance.toLocaleString()} VND credit
+                    <div className="text-xs text-ink-subtle mt-0.5">
+                      <span className="font-bold text-primary">
+                        {member.memberships[0].plan.toUpperCase()}
+                      </span>
+                      {' · '}
+                      <span className="tabular-nums">
+                        {member.memberships[0].creditBalance.toLocaleString()} VND
+                      </span>
                     </div>
                   )}
                 </button>
               ))}
             </div>
           ) : (
-            <div className="p-4 text-sm text-muted text-center">Không tìm thấy thành viên</div>
+            <div className="p-4 text-sm text-ink-subtle text-center">
+              {t('booking.memberNotFound', 'No member found')}
+            </div>
           )}
         </div>
       )}

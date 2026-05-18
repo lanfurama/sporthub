@@ -35,24 +35,32 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all text-sm"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Change language"
+        className="inline-flex items-center gap-2 h-11 px-3 rounded-xl bg-surface border border-border text-ink-muted hover:text-ink hover:border-border-strong transition-colors text-sm"
       >
         <Globe size={16} />
-        <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider">
+        <span className="hidden sm:inline text-xs font-bold tracking-wider">
           {LANG_FLAGS[currentLang]} {currentLang.toUpperCase()}
         </span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-surface border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+        <div
+          role="listbox"
+          className="absolute right-0 top-full mt-2 w-48 bg-surface border border-border rounded-xl shadow-sport-lg overflow-hidden z-50"
+        >
           {SUPPORTED_LANGS.map((code) => (
             <button
               key={code}
               onClick={() => handleSelect(code)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all ${
+              role="option"
+              aria-selected={currentLang === code}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
                 currentLang === code
                   ? 'bg-primary/10 text-primary font-bold'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
               }`}
             >
               <span className="text-base">{LANG_FLAGS[code]}</span>

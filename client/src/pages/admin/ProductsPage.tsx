@@ -150,7 +150,7 @@ export default function AdminProductsPage() {
         }}
         title={editingProduct ? 'Configure Asset Record' : 'Initialize New Asset'}
         size="md"
-        isDark={true}
+
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">

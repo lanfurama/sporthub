@@ -129,7 +129,7 @@ export default function AdminOrdersPage() {
         onOpenChange={(open) => !open && setSelectedOrder(null)}
         title="Transaction Intelligence"
         size="lg"
-        isDark={true}
+
       >
         {orderDetail && (
           <div className="space-y-8">

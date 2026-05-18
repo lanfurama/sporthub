@@ -1,0 +1,85 @@
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "SportHub home" [ref=e7] [cursor=pointer]:
+          - /url: /en
+          - img [ref=e9]
+          - generic [ref=e11]: SportHub
+        - generic [ref=e12]:
+          - link "Home" [ref=e13] [cursor=pointer]:
+            - /url: /en
+          - link "Book Now" [ref=e14] [cursor=pointer]:
+            - /url: /en/book
+        - generic [ref=e15]:
+          - button "Change language" [ref=e17] [cursor=pointer]:
+            - img [ref=e18]
+            - generic [ref=e21]: 🇺🇸 EN
+          - link "Login" [ref=e22] [cursor=pointer]:
+            - /url: /en/login
+    - main [ref=e23]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: Ready for the next match
+        - heading "CONQUER EVERY COURT" [level=1] [ref=e28]
+        - paragraph [ref=e29]: Professional court booking for Tennis, Pickleball & Badminton. Fast experience, secure payment.
+        - generic [ref=e30]:
+          - button "Tennis 0 COURTS AVAILABLE" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+            - generic [ref=e38]:
+              - generic [ref=e39]: Tennis
+              - generic [ref=e40]: 0 COURTS AVAILABLE
+          - button "Pickleball 0 COURTS AVAILABLE" [ref=e41] [cursor=pointer]:
+            - img [ref=e42]
+            - generic [ref=e46]:
+              - generic [ref=e47]: Pickleball
+              - generic [ref=e48]: 0 COURTS AVAILABLE
+          - button "Badminton 0 COURTS AVAILABLE" [ref=e49] [cursor=pointer]:
+            - img [ref=e50]
+            - generic [ref=e52]:
+              - generic [ref=e53]: Badminton
+              - generic [ref=e54]: 0 COURTS AVAILABLE
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - img
+            - textbox "Date" [ref=e58]: 2026-05-18
+          - generic [ref=e59]:
+            - img
+            - textbox "Time" [ref=e60]: 09:00
+          - generic [ref=e61]:
+            - img
+            - combobox "Duration" [ref=e62] [cursor=pointer]:
+              - option "1 hours of play" [selected]
+              - option "1.5 hours of play"
+              - option "2 hours of play"
+              - option "2.5 hours of play"
+              - option "3 hours of play"
+          - button "Find Court" [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e68]: Find Court
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - img [ref=e71]
+            - generic [ref=e74]: Verified courts
+          - generic [ref=e75]:
+            - img [ref=e76]
+            - generic [ref=e79]: Instant booking
+          - generic [ref=e80]:
+            - img [ref=e81]
+            - generic [ref=e84]: Nearby locations
+      - generic [ref=e86]:
+        - img [ref=e88]
+        - heading "Ready to start?" [level=2] [ref=e91]
+        - paragraph [ref=e92]: Choose a sport and time to find the best court.
+    - contentinfo [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]:
+          - img [ref=e97]
+          - generic [ref=e99]: SportHub
+        - paragraph [ref=e100]: Leading sports court management and booking platform. Connecting the sports community.
+        - generic [ref=e101]:
+          - button "Facebook" [ref=e102] [cursor=pointer]
+          - button "Instagram" [ref=e103] [cursor=pointer]
+          - button "TikTok" [ref=e104] [cursor=pointer]
+        - paragraph [ref=e105]: © 2026 SportHub Platform. All Rights Reserved.

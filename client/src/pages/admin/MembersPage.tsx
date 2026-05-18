@@ -201,7 +201,7 @@ export default function AdminMembersPage() {
         onOpenChange={setShowAddModal}
         title="Add New Member Profile"
         size="md"
-        isDark={true}
+
       >
         <form onSubmit={handleAddMember} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
@@ -250,7 +250,7 @@ export default function AdminMembersPage() {
         onOpenChange={(open) => !open && setSelectedMember(null)}
         title="Wallet Adjustment"
         size="sm"
-        isDark={true}
+
       >
         <form onSubmit={handleAddCredit} className="space-y-6">
           <div className="space-y-2">
