@@ -3,7 +3,7 @@
 ## Project Overview
 SportHub is a sports court booking platform. **Migration in progress** from Vite + Express monorepo to single Next.js 15 App Router app at repo root (for Vercel deployment).
 
-- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a complete and merged to main)
+- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a + 2b complete and merged to main)
 - **OLD (reference only):** `client/` (Vite SPA) and `server/` (Express + Socket.io) — untouched, will be removed at final cutover phase
 
 ## Vercel Migration Status
@@ -45,6 +45,33 @@ Browser E2E verified: locale switching, login round-trip, Navbar auth-aware upda
 - **Courts API filter params** (date/time/duration) — Phase 2b BookingFlow needs them
 - **HomePage `today` hydration** — set in `useEffect` to avoid SSG/runtime drift
 
+### Phase 2b: Booking Flow — ✅ COMPLETE (merged to main)
+Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-02b-booking-flow.md`
+
+7 commits delivering:
+- `components/Modal.tsx`, `PriceBreakdown.tsx`, `TimeSlotGrid.tsx` (Client Components, i18n-wired)
+- `components/MemberSearch.tsx` (stub — Phase 3 will port real version)
+- Bookings API customer scope: `POST /api/bookings`, `GET /api/bookings`, `GET/DELETE /api/bookings/[id]` (ownership + 2h cancel rule)
+- Payments API: `POST /api/payments` (auth/ownership/amount validation), `GET/POST /api/payments/webhook` (VNPay GET + MoMo POST, both signed)
+- Plans API: `GET /api/plans`
+- `src/lib/booking-helpers.ts` (generateRef, checkSlotAvailable, calcPrice)
+- `src/lib/vnpay.ts`, `momo.ts` (HMAC signing, process.env-based)
+- `app/[lang]/book/page.tsx` (3-step wizard, Suspense-wrapped, 5s slot polling)
+- `app/[lang]/booking/success/page.tsx`
+- `src/lib/api/bookings.ts`, `plans.ts`, `payments.ts`
+- `next.config.mjs` outputFileTracingRoot fix
+- 1 new translation key `booking.priceBreakdown` (added to all 5 locales)
+
+**Critical security fix in-band:** Phase 2b webhook signature/order-id cross-check (was vulnerable to authorization code injection if attacker had any valid signature).
+
+**Phase 2b verification:** typecheck ✓, lint ✓, build ✓ (42 static pages, 19 dynamic routes, 102KB shared JS), Playwright E2E ✓.
+
+### Phase 2b Deferred to Later Phases
+- **TOCTOU race in checkSlotAvailable** — read+write across separate queries; fix in Phase 9 with DB unique constraint or SERIALIZABLE transaction
+- **Guest pass without pricing adjustment** — `useGuestPass` decrements counter but doesn't zero the price (legacy bug, needs product clarification)
+- **Anonymous booking lookup** — POST returns ref once; no GET-by-ref endpoint (matches legacy)
+- **API error extractor** — fragile cast pattern duplicated; extract to `utils/api-error.ts` in Phase 9
+
 ### Known Issues for Pre-Deploy (Phase 9)
 Pre-existing in legacy code, not Phase 1 regressions:
 - **Prisma connection pooling** — need PgBouncer or Prisma Accelerate before Vercel serverless deploy
@@ -56,10 +83,9 @@ Pre-existing in legacy code, not Phase 1 regressions:
 - **2FA step 2 not bound to step 1** — accepts `identifier+code` independent of who started flow
 
 ### Remaining Phases
-- **Phase 2b (next):** BookingFlow + BookingSuccessPage + Modal + PriceBreakdown + TimeSlotGrid + bookings/plans/payments API + polling for slot availability
-- **Phase 3:** Admin pages (dashboard, bookings, members, products, orders, AdminLayout, MemberSearch, Table, StatCard, ChartCard) + admin-only API endpoints
-- **Phase 4:** Replace Socket.io broadcasts with polling via TanStack Query (refetchInterval)
-- **Phase 9:** Pre-deploy hardening (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET) + Vercel deploy config
+- **Phase 3 (next):** Admin pages (dashboard, bookings, members, products, orders, AdminLayout, MemberSearch real impl, Table, StatCard, ChartCard) + admin-only API endpoints (createAdminBooking, updateBookingStatus, members/products/orders CRUD, analytics)
+- **Phase 4:** Replace TanStack polling with SSE if needed (Postgres LISTEN/NOTIFY); for now 5s polling is acceptable
+- **Phase 9:** Pre-deploy hardening (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET, TOCTOU slot race, guest pass pricing, API error extractor) + Vercel deploy config
 - **Phase 10:** Cutover — delete `client/` and `server/`
 
 ### Key Decisions
