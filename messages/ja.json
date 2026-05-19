@@ -121,7 +121,9 @@
     "normalPrice": "通常",
     "peakPrice": "ピーク",
     "bookingFailed": "予約に失敗しました。もう一度お試しください。",
-    "priceBreakdown": "料金内訳"
+    "priceBreakdown": "料金内訳",
+    "searchMemberPlaceholder": "名前または電話番号で会員を検索…",
+    "memberNotFound": "会員が見つかりません"
   },
   "bookingSuccess": {
     "title": "予約",

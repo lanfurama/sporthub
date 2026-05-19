@@ -121,7 +121,9 @@
     "normalPrice": "Обычная",
     "peakPrice": "Пиковая",
     "bookingFailed": "Бронирование не удалось. Попробуйте снова.",
-    "priceBreakdown": "Детализация цены"
+    "priceBreakdown": "Детализация цены",
+    "searchMemberPlaceholder": "Поиск участника по имени или телефону…",
+    "memberNotFound": "Участник не найден"
   },
   "bookingSuccess": {
     "title": "БРОНИРОВАНИЕ",
