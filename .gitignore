@@ -10,3 +10,6 @@ server/dist/
 out/
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code worktrees (harness-managed)
+.claude/worktrees/
