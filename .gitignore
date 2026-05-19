@@ -1,6 +1,15 @@
 node_modules/
 dist/
 .env
-*.env.local
+.env*.local
 client/dist/
 server/dist/
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Claude Code worktrees (harness-managed)
+.claude/worktrees/
