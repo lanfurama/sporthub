@@ -120,7 +120,8 @@
     "submitting": "Processing...",
     "normalPrice": "Standard",
     "peakPrice": "Peak",
-    "bookingFailed": "Booking failed. Please try again."
+    "bookingFailed": "Booking failed. Please try again.",
+    "priceBreakdown": "Price Breakdown"
   },
   "bookingSuccess": {
     "title": "BOOKING",

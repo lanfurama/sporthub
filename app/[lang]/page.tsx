@@ -72,8 +72,7 @@ function CourtCard({
   court: Court;
   onBook: () => void;
   index: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: (key: any, values?: any) => string;
+  t: ReturnType<typeof useTranslations>;
   lang: string;
 }) {
   return (

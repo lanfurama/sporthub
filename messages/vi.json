@@ -120,7 +120,8 @@
     "submitting": "Đang xử lý...",
     "normalPrice": "Thường",
     "peakPrice": "Peak",
-    "bookingFailed": "Đặt sân thất bại. Vui lòng thử lại."
+    "bookingFailed": "Đặt sân thất bại. Vui lòng thử lại.",
+    "priceBreakdown": "Chi tiết giá"
   },
   "bookingSuccess": {
     "title": "ĐẶT SÂN",
