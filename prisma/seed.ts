@@ -1,14 +1,3 @@
-import dotenv from 'dotenv';
-import { getDatabaseUrl } from '../src/config/database';
-
-// Load environment variables
-dotenv.config();
-
-// Set DATABASE_URL if not already set
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = getDatabaseUrl();
-}
-
 import { PrismaClient, UserRole, MembershipPlan, MembershipStatus, SportType, CourtStatus, ProductStatus, BookingStatus, BookingSource, OrderStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 

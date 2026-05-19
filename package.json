@@ -11,7 +11,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "node --env-file=.env.local --import tsx/esm prisma/seed.ts",
     "old:dev": "concurrently -n server,client -c blue,green \"cd server && npm run dev\" \"cd client && npm run dev\""
   },
   "dependencies": {
