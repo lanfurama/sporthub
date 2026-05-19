@@ -174,8 +174,8 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(req.nextUrl.searchParams.get('limit') ?? '20', 10);
     const skip = (page - 1) * limit;
 
-    // Customer scope only — filter to own bookings. Admin scope is Phase 3.
-    const where: Prisma.BookingWhereInput = { customerId: ctx.userId };
+    const isAdmin = ['staff', 'admin', 'super_admin'].includes(ctx.role);
+    const where: Prisma.BookingWhereInput = isAdmin ? {} : { customerId: ctx.userId };
 
     if (status) {
       const statusMap: Record<string, BookingStatus> = {
