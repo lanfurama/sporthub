@@ -3,7 +3,7 @@
 ## Project Overview
 SportHub is a sports court booking platform. **Migration in progress** from Vite + Express monorepo to single Next.js 15 App Router app at repo root (for Vercel deployment).
 
-- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a + 2b + 3a complete and merged to main)
+- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a + 2b + 3a + 3b complete and merged to main; ready for Phase 9 deploy hardening)
 - **OLD (reference only):** `client/` (Vite SPA) and `server/` (Express + Socket.io) — untouched, will be removed at final cutover phase
 
 ## Vercel Migration Status
@@ -99,6 +99,25 @@ Browser E2E with seeded staff user verified: logged-out → /en/login, customer 
 - **Trend percentages hardcoded** in DashboardPage (`+12%`, `-5%`...) — replace with real data when analytics expand
 - **Walk-in booking `customerId`** is the staff member's ID (legacy bug, matches Express server)
 
+### Phase 3b: Admin CRUD Pages — ✅ COMPLETE (merged to main)
+Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-03b-admin-crud.md`
+
+6 commits delivering:
+- 12 admin CRUD endpoints: members (4), products (5), orders (3)
+- Real `components/MemberSearch.tsx` (replaces Phase 2b stub) — uses next-intl i18n, useQuery on `/api/members`
+- `app/admin/page.tsx` redirect index (fixes /admin 404)
+- `app/admin/members/page.tsx`, `products/page.tsx`, `orders/page.tsx`, `book/page.tsx`
+- `src/lib/api/members.ts`, `products.ts`, `orders.ts` (client helpers)
+- `booking.searchMemberPlaceholder` + `memberNotFound` keys in all 5 locales
+
+Build: 54 static pages, typecheck clean, lint clean. All admin + customer routes 200. No regressions.
+
+### Phase 3b Deferred to Phase 9
+- **Pricing logic duplication** in `app/admin/book/page.tsx` and `app/[lang]/book/page.tsx` — extract to `utils/pricing.ts`
+- **`ordersApi.updateStatus` dead code** — calls `PATCH /orders/[id]/status` but route doesn't exist; either implement or delete
+- **`GET /api/orders` filter args ignored** — page sends `status`/`dateFrom`/`dateTo` but route only honors `page`/`limit`; filtering happens client-side on 100-row page
+- **`parseInt(id)` without NaN check** on `/api/products/[id]` — non-numeric id → 500 instead of 400
+
 ### Known Issues for Pre-Deploy (Phase 9)
 Pre-existing in legacy code, not Phase 1 regressions:
 - **Prisma connection pooling** — need PgBouncer or Prisma Accelerate before Vercel serverless deploy
@@ -110,9 +129,8 @@ Pre-existing in legacy code, not Phase 1 regressions:
 - **2FA step 2 not bound to step 1** — accepts `identifier+code` independent of who started flow
 
 ### Remaining Phases
-- **Phase 3b (next):** Members/Products/Orders CRUD pages + APIs, real MemberSearch component, AdminBookPage (admin creates bookings via UI), `app/admin/page.tsx` redirect index
-- **Phase 4:** Replace TanStack polling with SSE if needed (Postgres LISTEN/NOTIFY); for now 5s polling is acceptable
-- **Phase 9:** Pre-deploy hardening (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET, TOCTOU slot race, guest pass pricing, API error extractor, ProtectedRoute hydration fix, admin Tailwind tokens, dashboard trend percentages) + Vercel deploy config
+- **Phase 4 (optional):** Replace TanStack polling with SSE if needed (Postgres LISTEN/NOTIFY); for now 5s polling is acceptable
+- **Phase 9 (recommended next):** Pre-deploy hardening — security fixes (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET, TOCTOU slot race, guest pass pricing) + UX/quality (API error extractor, ProtectedRoute hydration fix, admin Tailwind tokens, dashboard trend percentages, pricing logic duplication, orders filtering, products parseInt) + Vercel deploy config
 - **Phase 10:** Cutover — delete `client/` and `server/`
 
 ### Key Decisions
