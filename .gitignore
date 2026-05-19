@@ -4,3 +4,13 @@ dist/
 *.env.local
 client/dist/
 server/dist/
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env
+.env.local
+.env*.local
