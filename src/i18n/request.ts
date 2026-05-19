@@ -1,10 +1,15 @@
 import { getRequestConfig } from 'next-intl/server';
+import { routing, type SupportedLang } from './routing';
 
-// Minimal stub — Task 3 replaces this with the real per-locale config.
-// Required by the next-intl plugin in next.config.mjs so the dev server can start.
-export default getRequestConfig(async () => {
+export default getRequestConfig(async ({ requestLocale }) => {
+  const requested = await requestLocale;
+  const locale: SupportedLang =
+    requested && (routing.locales as readonly string[]).includes(requested)
+      ? (requested as SupportedLang)
+      : routing.defaultLocale;
+
   return {
-    locale: 'en',
-    messages: {},
+    locale,
+    messages: (await import(`../../messages/${locale}.json`)).default,
   };
 });
