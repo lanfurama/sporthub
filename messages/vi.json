@@ -121,7 +121,9 @@
     "normalPrice": "Thường",
     "peakPrice": "Peak",
     "bookingFailed": "Đặt sân thất bại. Vui lòng thử lại.",
-    "priceBreakdown": "Chi tiết giá"
+    "priceBreakdown": "Chi tiết giá",
+    "searchMemberPlaceholder": "Tìm thành viên theo tên hoặc số điện thoại…",
+    "memberNotFound": "Không tìm thấy thành viên"
   },
   "bookingSuccess": {
     "title": "ĐẶT SÂN",
