@@ -12,6 +12,11 @@ export const courtsApi = {
     return res.data.data;
   },
 
+  async getById(id: number): Promise<Court> {
+    const res = await apiClient.get(`/courts/${id}`);
+    return res.data.data;
+  },
+
   async getAvailability(
     id: number,
     date: string,

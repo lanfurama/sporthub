@@ -120,7 +120,8 @@
     "submitting": "Обработка...",
     "normalPrice": "Обычная",
     "peakPrice": "Пиковая",
-    "bookingFailed": "Бронирование не удалось. Попробуйте снова."
+    "bookingFailed": "Бронирование не удалось. Попробуйте снова.",
+    "priceBreakdown": "Детализация цены"
   },
   "bookingSuccess": {
     "title": "БРОНИРОВАНИЕ",

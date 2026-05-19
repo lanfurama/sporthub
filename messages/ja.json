@@ -120,7 +120,8 @@
     "submitting": "処理中...",
     "normalPrice": "通常",
     "peakPrice": "ピーク",
-    "bookingFailed": "予約に失敗しました。もう一度お試しください。"
+    "bookingFailed": "予約に失敗しました。もう一度お試しください。",
+    "priceBreakdown": "料金内訳"
   },
   "bookingSuccess": {
     "title": "予約",
