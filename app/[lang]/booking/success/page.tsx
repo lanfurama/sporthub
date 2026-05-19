@@ -1,16 +1,15 @@
 'use client';
 
-import { useSearchParams, useParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Link } from '@/src/i18n/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Home, Calendar, Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/Navbar';
 
-export default function BookingSuccessPage() {
+function BookingSuccessInner() {
   const searchParams = useSearchParams();
-  const params = useParams<{ lang: string }>();
-  const lang = params?.lang ?? 'en';
   const t = useTranslations();
   const ref = searchParams.get('ref') ?? 'N/A';
 
@@ -88,5 +87,24 @@ export default function BookingSuccessPage() {
         </motion.div>
       </main>
     </div>
+  );
+}
+
+function BookingSuccessFallback() {
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      <main className="pt-20 flex items-center justify-center min-h-screen px-4 md:px-6 py-16">
+        <div className="max-w-md w-full text-center text-ink-muted text-sm">…</div>
+      </main>
+    </div>
+  );
+}
+
+export default function BookingSuccessPage() {
+  return (
+    <Suspense fallback={<BookingSuccessFallback />}>
+      <BookingSuccessInner />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
@@ -111,7 +111,7 @@ function isPeakTime(startTime: string, peakStart: string, peakEnd: string): bool
   return start >= ps && start < pe;
 }
 
-export default function BookingFlow() {
+function BookingFlowInner() {
   const t = useTranslations();
   const params = useParams<{ lang: string }>();
   const lang = params?.lang ?? 'en';
@@ -786,5 +786,26 @@ export default function BookingFlow() {
         </div>
       </main>
     </div>
+  );
+}
+
+function BookingFlowFallback() {
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      <main className="pt-24 md:pt-32 pb-20 px-4 md:px-6">
+        <div className="max-w-3xl mx-auto flex justify-center py-20 text-primary">
+          <Spinner size={36} />
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function BookingFlow() {
+  return (
+    <Suspense fallback={<BookingFlowFallback />}>
+      <BookingFlowInner />
+    </Suspense>
   );
 }

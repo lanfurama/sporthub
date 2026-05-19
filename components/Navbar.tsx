@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
+import NextLink from 'next/link';
 import { Link } from '@/src/i18n/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { LogOut, LayoutDashboard, Activity } from 'lucide-react';
@@ -74,14 +75,14 @@ export default function Navbar() {
               </div>
 
               {(user.role === 'admin' || user.role === 'super_admin' || user.role === 'staff') && (
-                <a
+                <NextLink
                   href="/admin/dashboard"
                   className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-surface border border-border text-ink-muted hover:text-primary hover:border-primary/40 transition-all"
                   aria-label={t('nav.dashboard')}
                   title={t('nav.dashboard')}
                 >
                   <LayoutDashboard size={18} />
-                </a>
+                </NextLink>
               )}
 
               <button

@@ -28,20 +28,46 @@ export async function GET(req: NextRequest) {
     if (!result.isValid) {
       throw new AppError(400, 'INVALID_SIGNATURE', 'Chữ ký không hợp lệ');
     }
+    // Cross-check signed orderId against query id to prevent confirming
+    // a different booking with someone else's valid signature.
+    if (result.orderId !== id) {
+      throw new AppError(400, 'ORDER_ID_MISMATCH', 'Order ID không khớp');
+    }
     if (result.responseCode !== '00') {
       return NextResponse.json({ success: false, message: 'Thanh toán thất bại' });
     }
 
     if (type === 'booking') {
-      await prisma.booking.update({
+      const booking = await prisma.booking.findUnique({
         where: { id },
-        data: { status: BookingStatus.confirmed, payMethod: 'vnpay' },
+        select: { finalPrice: true, status: true },
       });
+      if (!booking) throw new AppError(404, 'NOT_FOUND', 'Không tìm thấy đặt sân');
+      if (Number(booking.finalPrice) !== result.amount) {
+        throw new AppError(400, 'AMOUNT_MISMATCH', 'Số tiền không khớp');
+      }
+      // Idempotency: ignore if already confirmed.
+      if (booking.status !== BookingStatus.confirmed) {
+        await prisma.booking.update({
+          where: { id },
+          data: { status: BookingStatus.confirmed, payMethod: 'vnpay' },
+        });
+      }
     } else {
-      await prisma.order.update({
+      const order = await prisma.order.findUnique({
         where: { id },
-        data: { status: OrderStatus.paid, payMethod: 'vnpay' },
+        select: { total: true, status: true },
       });
+      if (!order) throw new AppError(404, 'NOT_FOUND', 'Không tìm thấy đơn hàng');
+      if (Number(order.total) !== result.amount) {
+        throw new AppError(400, 'AMOUNT_MISMATCH', 'Số tiền không khớp');
+      }
+      if (order.status !== OrderStatus.paid) {
+        await prisma.order.update({
+          where: { id },
+          data: { status: OrderStatus.paid, payMethod: 'vnpay' },
+        });
+      }
     }
 
     return NextResponse.json({ success: true, message: 'Thanh toán thành công' });
@@ -68,20 +94,44 @@ export async function POST(req: NextRequest) {
     if (!result.isValid) {
       throw new AppError(400, 'INVALID_SIGNATURE', 'Chữ ký không hợp lệ');
     }
+    // Cross-check signed orderId against query id.
+    if (result.orderId !== validId) {
+      throw new AppError(400, 'ORDER_ID_MISMATCH', 'Order ID không khớp');
+    }
     if (result.resultCode !== '0') {
       return NextResponse.json({ success: false, message: 'Thanh toán thất bại' });
     }
 
     if (validType === 'booking') {
-      await prisma.booking.update({
+      const booking = await prisma.booking.findUnique({
         where: { id: validId },
-        data: { status: BookingStatus.confirmed, payMethod: 'momo' },
+        select: { finalPrice: true, status: true },
       });
+      if (!booking) throw new AppError(404, 'NOT_FOUND', 'Không tìm thấy đặt sân');
+      if (Number(booking.finalPrice) !== result.amount) {
+        throw new AppError(400, 'AMOUNT_MISMATCH', 'Số tiền không khớp');
+      }
+      if (booking.status !== BookingStatus.confirmed) {
+        await prisma.booking.update({
+          where: { id: validId },
+          data: { status: BookingStatus.confirmed, payMethod: 'momo' },
+        });
+      }
     } else {
-      await prisma.order.update({
+      const order = await prisma.order.findUnique({
         where: { id: validId },
-        data: { status: OrderStatus.paid, payMethod: 'momo' },
+        select: { total: true, status: true },
       });
+      if (!order) throw new AppError(404, 'NOT_FOUND', 'Không tìm thấy đơn hàng');
+      if (Number(order.total) !== result.amount) {
+        throw new AppError(400, 'AMOUNT_MISMATCH', 'Số tiền không khớp');
+      }
+      if (order.status !== OrderStatus.paid) {
+        await prisma.order.update({
+          where: { id: validId },
+          data: { status: OrderStatus.paid, payMethod: 'momo' },
+        });
+      }
     }
 
     return NextResponse.json({ success: true, message: 'Thanh toán thành công' });
