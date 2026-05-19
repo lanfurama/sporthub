@@ -121,7 +121,9 @@
     "normalPrice": "Standard",
     "peakPrice": "Peak",
     "bookingFailed": "Booking failed. Please try again.",
-    "priceBreakdown": "Price Breakdown"
+    "priceBreakdown": "Price Breakdown",
+    "searchMemberPlaceholder": "Search member by name or phone…",
+    "memberNotFound": "No member found"
   },
   "bookingSuccess": {
     "title": "BOOKING",

@@ -121,7 +121,9 @@
     "normalPrice": "일반",
     "peakPrice": "피크",
     "bookingFailed": "예약 실패. 다시 시도하세요.",
-    "priceBreakdown": "가격 내역"
+    "priceBreakdown": "가격 내역",
+    "searchMemberPlaceholder": "이름 또는 전화번호로 회원 검색…",
+    "memberNotFound": "회원을 찾을 수 없습니다"
   },
   "bookingSuccess": {
     "title": "예약",
