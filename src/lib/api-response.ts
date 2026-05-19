@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
+import * as jwt from 'jsonwebtoken';
 
 export class AppError extends Error {
   constructor(
@@ -29,6 +30,12 @@ export function handleError(err: unknown): NextResponse {
   }
   if (err instanceof AppError) {
     return fail(err.code, err.message, err.statusCode);
+  }
+  if (err instanceof jwt.TokenExpiredError) {
+    return fail('TOKEN_EXPIRED', 'Token đã hết hạn', 401);
+  }
+  if (err instanceof jwt.JsonWebTokenError) {
+    return fail('INVALID_TOKEN', 'Token không hợp lệ', 401);
   }
   console.error('[API Error]', err);
   return fail('INTERNAL_ERROR', 'Internal server error', 500);
