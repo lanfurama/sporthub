@@ -3,12 +3,12 @@
 ## Project Overview
 SportHub is a sports court booking platform. **Migration in progress** from Vite + Express monorepo to single Next.js 15 App Router app at repo root (for Vercel deployment).
 
-- **NEW (in-progress):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 complete on branch `worktree-vercel-migration-01-foundation`)
+- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a complete and merged to main)
 - **OLD (reference only):** `client/` (Vite SPA) and `server/` (Express + Socket.io) — untouched, will be removed at final cutover phase
 
 ## Vercel Migration Status
 
-### Phase 1: Foundation + Auth — ✅ COMPLETE (branch: `worktree-vercel-migration-01-foundation`)
+### Phase 1: Foundation + Auth — ✅ COMPLETE (merged to main)
 Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-01-foundation.md`
 
 11 commits delivering:
@@ -21,7 +21,29 @@ Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-01-foundation.md`
 - LoginPage + RegisterPage as Client Components
 - All 5 locales render localized HTML; production build passes
 
-**Phase 1 ready to merge.** Verification: typecheck ✓, lint ✓, build ✓, E2E auth flow ✓.
+**Phase 1 merged.** Verification: typecheck ✓, lint ✓, build ✓, E2E auth flow ✓.
+
+### Phase 2a: Customer Foundation + HomePage — ✅ COMPLETE (merged to main)
+Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-02a-customer-homepage.md`
+
+5 commits delivering:
+- `components/Badge.tsx` (copied verbatim)
+- `components/LanguageSwitcher.tsx` (next-intl router-based dropdown)
+- `components/Navbar.tsx` (auth-aware, locale-aware Link)
+- `components/ProtectedRoute.tsx` (Client Component wrapper)
+- `components/QueryProvider.tsx` (TanStack Query)
+- `src/lib/auth-middleware.ts` (getAuthContext + requireMinRole for protected API)
+- Public Courts API: `GET /api/courts`, `/api/courts/[id]`, `/api/courts/[id]/availability`
+- `src/lib/api/courts.ts` (client helper)
+- `app/[lang]/page.tsx` (full HomePage replacing placeholder)
+- 6 new `home.*` translation keys added to all 5 locale JSONs
+- `{{count}}` → `{count}` ICU conversion for next-intl
+
+Browser E2E verified: locale switching, login round-trip, Navbar auth-aware updates.
+
+### Phase 2a Deferred to Later Phases
+- **Courts API filter params** (date/time/duration) — Phase 2b BookingFlow needs them
+- **HomePage `today` hydration** — set in `useEffect` to avoid SSG/runtime drift
 
 ### Known Issues for Pre-Deploy (Phase 9)
 Pre-existing in legacy code, not Phase 1 regressions:
@@ -33,11 +55,11 @@ Pre-existing in legacy code, not Phase 1 regressions:
 - **OTP uses `Math.random()`** instead of `crypto.randomInt` — predictable in theory
 - **2FA step 2 not bound to step 1** — accepts `identifier+code` independent of who started flow
 
-### Remaining Phases (not yet planned)
-- **Phase 2:** Customer pages (HomePage, BookingFlow, BookingSuccessPage) + Navbar + LanguageSwitcher + shared components
-- **Phase 3:** Admin pages
-- **Phase 4:** Replace Socket.io broadcasts with polling via TanStack Query
-- **Phase 9:** Pre-deploy hardening (connection pool, rate limit, security fixes) + Vercel deploy config
+### Remaining Phases
+- **Phase 2b (next):** BookingFlow + BookingSuccessPage + Modal + PriceBreakdown + TimeSlotGrid + bookings/plans/payments API + polling for slot availability
+- **Phase 3:** Admin pages (dashboard, bookings, members, products, orders, AdminLayout, MemberSearch, Table, StatCard, ChartCard) + admin-only API endpoints
+- **Phase 4:** Replace Socket.io broadcasts with polling via TanStack Query (refetchInterval)
+- **Phase 9:** Pre-deploy hardening (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET) + Vercel deploy config
 - **Phase 10:** Cutover — delete `client/` and `server/`
 
 ### Key Decisions
