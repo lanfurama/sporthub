@@ -3,7 +3,7 @@
 ## Project Overview
 SportHub is a sports court booking platform. **Migration in progress** from Vite + Express monorepo to single Next.js 15 App Router app at repo root (for Vercel deployment).
 
-- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a + 2b complete and merged to main)
+- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a + 2b + 3a complete and merged to main)
 - **OLD (reference only):** `client/` (Vite SPA) and `server/` (Express + Socket.io) — untouched, will be removed at final cutover phase
 
 ## Vercel Migration Status
@@ -72,6 +72,33 @@ Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-02b-booking-flow.md`
 - **Anonymous booking lookup** — POST returns ref once; no GET-by-ref endpoint (matches legacy)
 - **API error extractor** — fragile cast pattern duplicated; extract to `utils/api-error.ts` in Phase 9
 
+### Phase 3a: Admin Foundation + Dashboard + Bookings — ✅ COMPLETE (merged to main)
+Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-03a-admin-foundation.md`
+
+6 commits delivering:
+- `components/StatCard.tsx`, `ChartCard.tsx`, `Table.tsx`, `AdminSidebar.tsx`
+- `app/admin/layout.tsx` (Client Component shell — role gate, QueryProvider, Zustand persist hydration guard, `<html><body>` wrapping)
+- Admin bookings API: `GET /api/bookings` admin-scope (sees all), `POST /api/bookings/admin` (createAdminBooking), `PATCH /api/bookings/[id]/status` (updateBookingStatus)
+- `GET /api/analytics/dashboard` (today stats, member counts, source breakdown, 7-day histogram, recent bookings)
+- `app/admin/dashboard/page.tsx` (BarChart + PieChart + StatCards + Recent Activity table, 30s refetch)
+- `app/admin/bookings/page.tsx` (status + date filters, Approve/Reject mutations with reason prompt)
+- `bookingsApi.createAdmin` + `bookingsApi.updateStatus` re-added to helper
+
+Browser E2E with seeded staff user verified: logged-out → /en/login, customer → /en (denied), staff → dashboard + bookings management functional.
+
+3 Critical issues fixed in-band during verification:
+- Admin layout was missing `<html>/<body>` (page rendered without doc structure)
+- Admin layout was missing QueryClientProvider (every useQuery crashed)
+- Persist hydration race redirected authenticated staff on every refresh
+
+### Phase 3a Deferred to Phase 3b
+- **`/admin` returns 404** — need `app/admin/page.tsx` index page (redirect to /admin/dashboard)
+- **AdminSidebar prefetches 4 future routes** that 404 — disable until routes exist
+- **`ProtectedRoute.tsx` same persist hydration race** — apply same `hasHydrated` fix to customer pages
+- **Admin Tailwind tokens** (`bg-surface-lighter`, `shadow-neon`, etc.) undefined in light theme — admin will be visually unstyled until design pass
+- **Trend percentages hardcoded** in DashboardPage (`+12%`, `-5%`...) — replace with real data when analytics expand
+- **Walk-in booking `customerId`** is the staff member's ID (legacy bug, matches Express server)
+
 ### Known Issues for Pre-Deploy (Phase 9)
 Pre-existing in legacy code, not Phase 1 regressions:
 - **Prisma connection pooling** — need PgBouncer or Prisma Accelerate before Vercel serverless deploy
@@ -83,9 +110,9 @@ Pre-existing in legacy code, not Phase 1 regressions:
 - **2FA step 2 not bound to step 1** — accepts `identifier+code` independent of who started flow
 
 ### Remaining Phases
-- **Phase 3 (next):** Admin pages (dashboard, bookings, members, products, orders, AdminLayout, MemberSearch real impl, Table, StatCard, ChartCard) + admin-only API endpoints (createAdminBooking, updateBookingStatus, members/products/orders CRUD, analytics)
+- **Phase 3b (next):** Members/Products/Orders CRUD pages + APIs, real MemberSearch component, AdminBookPage (admin creates bookings via UI), `app/admin/page.tsx` redirect index
 - **Phase 4:** Replace TanStack polling with SSE if needed (Postgres LISTEN/NOTIFY); for now 5s polling is acceptable
-- **Phase 9:** Pre-deploy hardening (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET, TOCTOU slot race, guest pass pricing, API error extractor) + Vercel deploy config
+- **Phase 9:** Pre-deploy hardening (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET, TOCTOU slot race, guest pass pricing, API error extractor, ProtectedRoute hydration fix, admin Tailwind tokens, dashboard trend percentages) + Vercel deploy config
 - **Phase 10:** Cutover — delete `client/` and `server/`
 
 ### Key Decisions
