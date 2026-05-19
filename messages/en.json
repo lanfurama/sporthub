@@ -53,7 +53,13 @@
     "backToSearch": "Back to search",
     "resultsTitle": "Search",
     "resultsHighlight": "Results",
-    "courtsFound": "Found {{count}} matching courts",
+    "courtsFound": "Found {count} matching courts",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "trustVerified": "Verified courts",
+    "trustInstant": "Instant booking",
+    "trustNearby": "Nearby locations",
     "courtStatus": {
       "active": "Available",
       "inactive": "Unavailable"

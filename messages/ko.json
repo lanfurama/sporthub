@@ -53,7 +53,13 @@
     "backToSearch": "검색으로 돌아가기",
     "resultsTitle": "검색",
     "resultsHighlight": "결과",
-    "courtsFound": "{{count}}개의 코트를 찾았습니다",
+    "courtsFound": "{count}개의 코트를 찾았습니다",
+    "date": "날짜",
+    "time": "시간",
+    "duration": "시간",
+    "trustVerified": "검증된 코트",
+    "trustInstant": "즉시 예약",
+    "trustNearby": "근처 위치",
     "courtStatus": {
       "active": "이용 가능",
       "inactive": "이용 불가"
