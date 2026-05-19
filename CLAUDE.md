@@ -1,7 +1,101 @@
 # SportHub - Project Context
 
 ## Project Overview
-SportHub is a sports court booking platform (React + Vite + TypeScript + Tailwind CSS client, Node.js server). Monorepo with `client/` and `server/` workspaces.
+SportHub is a sports court booking platform. **Migration in progress** from Vite + Express monorepo to single Next.js 15 App Router app at repo root (for Vercel deployment).
+
+- **NEW (active):** Next.js 15 + Prisma + next-intl at repo root (Phase 1 + 2a + 2b complete and merged to main)
+- **OLD (reference only):** `client/` (Vite SPA) and `server/` (Express + Socket.io) — untouched, will be removed at final cutover phase
+
+## Vercel Migration Status
+
+### Phase 1: Foundation + Auth — ✅ COMPLETE (merged to main)
+Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-01-foundation.md`
+
+11 commits delivering:
+- Next.js 15 App Router at root with Tailwind, TypeScript strict, ESLint
+- Prisma at root + DB connection (sslmode=prefer for localhost dev)
+- next-intl `/:lang/` routing for 5 locales (en, ko, ja, vi, ru)
+- 9 auth Route Handlers ported from Express (register, login, forgot/reset password, refresh, admin login/2FA, Google OAuth)
+- Auth helper libs (jwt, otp, sms, oauth, console-wrapper logger, api-response)
+- Axios client + Zustand auth store + types
+- LoginPage + RegisterPage as Client Components
+- All 5 locales render localized HTML; production build passes
+
+**Phase 1 merged.** Verification: typecheck ✓, lint ✓, build ✓, E2E auth flow ✓.
+
+### Phase 2a: Customer Foundation + HomePage — ✅ COMPLETE (merged to main)
+Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-02a-customer-homepage.md`
+
+5 commits delivering:
+- `components/Badge.tsx` (copied verbatim)
+- `components/LanguageSwitcher.tsx` (next-intl router-based dropdown)
+- `components/Navbar.tsx` (auth-aware, locale-aware Link)
+- `components/ProtectedRoute.tsx` (Client Component wrapper)
+- `components/QueryProvider.tsx` (TanStack Query)
+- `src/lib/auth-middleware.ts` (getAuthContext + requireMinRole for protected API)
+- Public Courts API: `GET /api/courts`, `/api/courts/[id]`, `/api/courts/[id]/availability`
+- `src/lib/api/courts.ts` (client helper)
+- `app/[lang]/page.tsx` (full HomePage replacing placeholder)
+- 6 new `home.*` translation keys added to all 5 locale JSONs
+- `{{count}}` → `{count}` ICU conversion for next-intl
+
+Browser E2E verified: locale switching, login round-trip, Navbar auth-aware updates.
+
+### Phase 2a Deferred to Later Phases
+- **Courts API filter params** (date/time/duration) — Phase 2b BookingFlow needs them
+- **HomePage `today` hydration** — set in `useEffect` to avoid SSG/runtime drift
+
+### Phase 2b: Booking Flow — ✅ COMPLETE (merged to main)
+Plan: `docs/superpowers/plans/2026-05-19-vercel-migration-02b-booking-flow.md`
+
+7 commits delivering:
+- `components/Modal.tsx`, `PriceBreakdown.tsx`, `TimeSlotGrid.tsx` (Client Components, i18n-wired)
+- `components/MemberSearch.tsx` (stub — Phase 3 will port real version)
+- Bookings API customer scope: `POST /api/bookings`, `GET /api/bookings`, `GET/DELETE /api/bookings/[id]` (ownership + 2h cancel rule)
+- Payments API: `POST /api/payments` (auth/ownership/amount validation), `GET/POST /api/payments/webhook` (VNPay GET + MoMo POST, both signed)
+- Plans API: `GET /api/plans`
+- `src/lib/booking-helpers.ts` (generateRef, checkSlotAvailable, calcPrice)
+- `src/lib/vnpay.ts`, `momo.ts` (HMAC signing, process.env-based)
+- `app/[lang]/book/page.tsx` (3-step wizard, Suspense-wrapped, 5s slot polling)
+- `app/[lang]/booking/success/page.tsx`
+- `src/lib/api/bookings.ts`, `plans.ts`, `payments.ts`
+- `next.config.mjs` outputFileTracingRoot fix
+- 1 new translation key `booking.priceBreakdown` (added to all 5 locales)
+
+**Critical security fix in-band:** Phase 2b webhook signature/order-id cross-check (was vulnerable to authorization code injection if attacker had any valid signature).
+
+**Phase 2b verification:** typecheck ✓, lint ✓, build ✓ (42 static pages, 19 dynamic routes, 102KB shared JS), Playwright E2E ✓.
+
+### Phase 2b Deferred to Later Phases
+- **TOCTOU race in checkSlotAvailable** — read+write across separate queries; fix in Phase 9 with DB unique constraint or SERIALIZABLE transaction
+- **Guest pass without pricing adjustment** — `useGuestPass` decrements counter but doesn't zero the price (legacy bug, needs product clarification)
+- **Anonymous booking lookup** — POST returns ref once; no GET-by-ref endpoint (matches legacy)
+- **API error extractor** — fragile cast pattern duplicated; extract to `utils/api-error.ts` in Phase 9
+
+### Known Issues for Pre-Deploy (Phase 9)
+Pre-existing in legacy code, not Phase 1 regressions:
+- **Prisma connection pooling** — need PgBouncer or Prisma Accelerate before Vercel serverless deploy
+- **No rate limiting** on auth routes (Express had `express-rate-limit` 100/min)
+- **SMS `sendSMS` broken** — fetch call sends no body/params; never delivers OTP. Will block 2FA + password-reset in production.
+- **Google OAuth missing CSRF `state` param** — vulnerable to authorization-code injection
+- **`JWT_REFRESH_SECRET` missing from `.env.example`** — dev falls back to `JWT_SECRET`, dangerous in prod
+- **OTP uses `Math.random()`** instead of `crypto.randomInt` — predictable in theory
+- **2FA step 2 not bound to step 1** — accepts `identifier+code` independent of who started flow
+
+### Remaining Phases
+- **Phase 3 (next):** Admin pages (dashboard, bookings, members, products, orders, AdminLayout, MemberSearch real impl, Table, StatCard, ChartCard) + admin-only API endpoints (createAdminBooking, updateBookingStatus, members/products/orders CRUD, analytics)
+- **Phase 4:** Replace TanStack polling with SSE if needed (Postgres LISTEN/NOTIFY); for now 5s polling is acceptable
+- **Phase 9:** Pre-deploy hardening (Prisma connection pool, rate limit, SMS fix, OAuth CSRF state, OTP crypto.randomInt, JWT_REFRESH_SECRET, TOCTOU slot race, guest pass pricing, API error extractor) + Vercel deploy config
+- **Phase 10:** Cutover — delete `client/` and `server/`
+
+### Key Decisions
+- **Single Next.js app at repo root** (not monorepo workspace) — simplest for Vercel deployment
+- **Root layout returns `children` directly** — `app/[lang]/layout.tsx` owns `<html lang={lang}><body>` to set locale dynamically per request
+- **localStorage keys preserved** (`sporthub_token`, `sporthub_auth`) — don't break flow when old client still accessible
+- **2-stage migration** — Stage 1 = Next.js + polling (deploy-ready); Stage 2 = SSE realtime + production hardening
+- **PostgreSQL on user's own server** — not Neon/Vercel Postgres. Needs SSL + PgBouncer for production
+
+## Legacy i18n Work (old client/, kept for reference)
 
 ## i18n Multi-language Feature (In Progress)
 
@@ -59,6 +153,20 @@ A review agent analyzed the client codebase and found issues. These were NOT fix
 Full review report is in the conversation history dated 2026-04-17.
 
 ## Tech Stack
-- **Client:** React 18, Vite, TypeScript, Tailwind CSS, Zustand, TanStack Query, react-router-dom, framer-motion, react-i18next
-- **Server:** Node.js (see server/ for details)
-- **Monorepo:** npm workspaces
+
+### New (active development)
+- **Framework:** Next.js 15 App Router (single app at repo root)
+- **Language:** TypeScript 5.6 strict
+- **Styling:** Tailwind CSS 3.4
+- **State:** Zustand 5 (with persist middleware)
+- **Data:** TanStack Query 5, axios
+- **i18n:** next-intl 3.26 (5 locales, URL-prefixed)
+- **ORM:** Prisma 5.22 → PostgreSQL (user's own server)
+- **Auth:** JWT (jsonwebtoken) + bcrypt
+- **Validation:** Zod 3
+- **UI:** Radix UI primitives, framer-motion, lucide-react
+
+### Old (reference only — `client/` and `server/`)
+- Client: React 18 + Vite + react-router-dom + react-i18next
+- Server: Express 4 + Socket.io + Prisma 5
+- Both will be deleted at Phase 10 cutover
