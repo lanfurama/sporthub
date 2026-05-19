@@ -53,7 +53,13 @@
     "backToSearch": "Quay lại tìm kiếm",
     "resultsTitle": "Kết quả",
     "resultsHighlight": "tìm kiếm",
-    "courtsFound": "Tìm thấy {{count}} sân phù hợp",
+    "courtsFound": "Tìm thấy {count} sân phù hợp",
+    "date": "Ngày",
+    "time": "Giờ",
+    "duration": "Thời lượng",
+    "trustVerified": "Sân đã xác minh",
+    "trustInstant": "Đặt tức thì",
+    "trustNearby": "Địa điểm gần đây",
     "courtStatus": {
       "active": "Sẵn sàng",
       "inactive": "Không khả dụng"

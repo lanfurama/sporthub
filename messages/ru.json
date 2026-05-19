@@ -53,7 +53,13 @@
     "backToSearch": "Вернуться к поиску",
     "resultsTitle": "Результаты",
     "resultsHighlight": "поиска",
-    "courtsFound": "Найдено {{count}} кортов",
+    "courtsFound": "Найдено {count} кортов",
+    "date": "Дата",
+    "time": "Время",
+    "duration": "Продолжительность",
+    "trustVerified": "Проверенные корты",
+    "trustInstant": "Мгновенное бронирование",
+    "trustNearby": "Близкие локации",
     "courtStatus": {
       "active": "Доступен",
       "inactive": "Недоступен"

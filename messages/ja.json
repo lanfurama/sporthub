@@ -53,7 +53,13 @@
     "backToSearch": "検索に戻る",
     "resultsTitle": "検索",
     "resultsHighlight": "結果",
-    "courtsFound": "{{count}}件のコートが見つかりました",
+    "courtsFound": "{count}件のコートが見つかりました",
+    "date": "日付",
+    "time": "時間",
+    "duration": "時間",
+    "trustVerified": "認証済みコート",
+    "trustInstant": "即時予約",
+    "trustNearby": "近くの場所",
     "courtStatus": {
       "active": "利用可能",
       "inactive": "利用不可"

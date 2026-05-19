@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing, type SupportedLang } from '@/src/i18n/routing';
+import QueryProvider from '@/components/QueryProvider';
 
 export function generateStaticParams() {
   return routing.locales.map((lang) => ({ lang }));
@@ -27,7 +28,9 @@ export default async function LangLayout({
     <html lang={lang}>
       <body>
         <NextIntlClientProvider messages={messages} locale={lang}>
-          {children}
+          <QueryProvider>
+            {children}
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>
