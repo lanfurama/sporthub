@@ -56,4 +56,29 @@ export const bookingsApi = {
     const res = await apiClient.delete(`/bookings/${id}`);
     return res.data.data;
   },
+
+  async createAdmin(data: {
+    courtId: number;
+    date: string;
+    time: string;
+    duration: number;
+    customer: { name: string; phone: string; email?: string };
+    memberId?: string;
+    useCredit?: boolean;
+    creditAmount?: number;
+    payMethod?: string;
+    note?: string;
+  }): Promise<unknown> {
+    const res = await apiClient.post('/bookings/admin', data);
+    return res.data.data;
+  },
+
+  async updateStatus(
+    id: string,
+    status: 'confirmed' | 'rejected' | 'completed',
+    reason?: string,
+  ): Promise<{ id: string; status: string }> {
+    const res = await apiClient.patch(`/bookings/${id}/status`, { status, reason });
+    return res.data.data;
+  },
 };
