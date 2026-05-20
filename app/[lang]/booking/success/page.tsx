@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Link } from '@/src/i18n/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Home, Calendar, Info } from 'lucide-react';
+import { CheckCircle, House, CalendarBlank, Info } from '@phosphor-icons/react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/Navbar';
 
@@ -14,10 +14,10 @@ function BookingSuccessInner() {
   const ref = searchParams.get('ref') ?? 'N/A';
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <Navbar />
 
-      <main className="pt-20 flex items-center justify-center min-h-screen px-4 md:px-6 py-16">
+      <main className="pt-20 flex items-center justify-center min-h-[100dvh] px-4 md:px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -30,7 +30,7 @@ function BookingSuccessInner() {
             transition={{ delay: 0.1, type: 'spring', stiffness: 220, damping: 16 }}
             className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary text-primary-foreground shadow-sport-lg mb-6"
           >
-            <CheckCircle2 size={40} strokeWidth={2.5} />
+            <CheckCircle size={40} weight="bold" />
           </motion.div>
 
           <h1 className="text-3xl md:text-4xl font-display font-bold text-ink mb-3 tracking-tightest">
@@ -76,11 +76,11 @@ function BookingSuccessInner() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/book" className="btn-secondary flex-1">
-              <Calendar size={18} />
+              <CalendarBlank size={18} />
               {t('bookingSuccess.bookAnother')}
             </Link>
             <Link href="/" className="btn-primary flex-1">
-              <Home size={18} />
+              <House size={18} />
               {t('bookingSuccess.goHome')}
             </Link>
           </div>
@@ -92,9 +92,9 @@ function BookingSuccessInner() {
 
 function BookingSuccessFallback() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <Navbar />
-      <main className="pt-20 flex items-center justify-center min-h-screen px-4 md:px-6 py-16">
+      <main className="pt-20 flex items-center justify-center min-h-[100dvh] px-4 md:px-6 py-16">
         <div className="max-w-md w-full text-center text-ink-muted text-sm">…</div>
       </main>
     </div>

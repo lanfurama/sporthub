@@ -9,18 +9,18 @@ export function Table({ headers, children, className = '' }: TableProps) {
     <div className={`bg-transparent overflow-hidden ${className}`}>
       <table className="w-full border-collapse">
         <thead>
-          <tr className="border-b border-white/5 bg-white/[0.02]">
+          <tr className="border-b border-border bg-surface-muted">
             {headers.map((header, i) => (
               <th
                 key={i}
-                className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]"
+                className="px-6 py-3.5 text-left text-[11px] font-semibold text-ink-subtle uppercase tracking-[0.12em]"
               >
                 {header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-border">
           {children}
         </tbody>
       </table>
@@ -38,7 +38,7 @@ export function TableRow({ children, onClick, className = '' }: TableRowProps) {
   return (
     <tr
       onClick={onClick}
-      className={`transition-colors group ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`transition-colors hover:bg-surface-muted/50 group ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
       {children}
     </tr>
@@ -53,7 +53,7 @@ interface TableCellProps {
 
 export function TableCell({ children, className = '', colSpan }: TableCellProps) {
   return (
-    <td colSpan={colSpan} className={`px-6 py-4 text-[13px] text-gray-300 ${className}`}>
+    <td colSpan={colSpan} className={`px-6 py-4 text-sm text-ink ${className}`}>
       {children}
     </td>
   );

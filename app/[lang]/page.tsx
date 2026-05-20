@@ -7,18 +7,18 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
-  Search,
-  Calendar,
+  MagnifyingGlass,
+  CalendarBlank,
   Clock,
   Hourglass,
   Trophy,
   Target,
-  Zap,
-  Activity,
+  Lightning,
+  Pulse,
   MapPin,
-  TrendingUp,
+  TrendUp,
   ShieldCheck,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import Navbar from '@/components/Navbar';
 import Spinner from '@/components/Spinner';
 import { courtsApi } from '@/src/lib/api/courts';
@@ -42,7 +42,7 @@ const SPORTS = [
   {
     id: 'Badminton',
     label: 'Badminton',
-    icon: Zap,
+    icon: Lightning,
     tint: 'bg-primary/10 text-primary border-primary/30',
     activeTint: 'bg-primary text-primary-foreground border-primary',
   },
@@ -116,7 +116,7 @@ function CourtCard({
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-1.5">
-            <Zap size={12} className="text-accent" strokeWidth={2.5} />
+            <Lightning size={12} weight="bold" className="text-accent" />
             <span className="text-xs text-accent font-bold uppercase tracking-tight">
               {t('home.pricePeak')}
             </span>
@@ -192,84 +192,104 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <Navbar />
 
       <main id="main" className="pt-16 md:pt-20">
-        {/* Hero */}
-        <section className="relative px-4 md:px-6 pt-12 pb-16 md:pt-20 md:pb-24 overflow-hidden">
-          {/* Soft court-pattern background */}
+        {/* Hero — asymmetric split: copy left, action panel right */}
+        <section className="relative px-4 md:px-6 pt-10 pb-14 md:pt-16 md:pb-20 overflow-hidden">
           <div
             aria-hidden
-            className="absolute inset-0 bg-court-pattern opacity-60 pointer-events-none"
+            className="absolute inset-0 bg-court-pattern opacity-50 pointer-events-none"
           />
           <div
             aria-hidden
-            className="absolute inset-x-0 bottom-0 h-32 bg-hero-fade pointer-events-none"
+            className="absolute inset-x-0 bottom-0 h-24 bg-hero-fade pointer-events-none"
           />
 
-          <div className="max-w-6xl mx-auto text-center relative">
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-subtle border border-primary/20 text-primary text-xs font-bold tracking-wide mb-6"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              {t('home.heroBadge')}
-            </motion.div>
+          <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            {/* Left: copy block (5 cols) */}
+            <div className="lg:col-span-5">
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-subtle border border-primary/20 text-primary text-xs font-semibold tracking-wide mb-6"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                {t('home.heroBadge')}
+              </motion.div>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-ink mb-5 leading-[1.05] tracking-tightest">
-              {t('home.heroTitle')}{' '}
-              <span className="text-primary">{t('home.heroTitleHighlight')}</span>
-            </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-semibold text-ink mb-5 leading-[1.05] tracking-tight">
+                {t('home.heroTitle')}{' '}
+                <span className="text-primary font-bold">{t('home.heroTitleHighlight')}</span>
+              </h1>
 
-            <p className="text-ink-muted text-base md:text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
-              {t('home.heroDescription')}
-            </p>
+              <p className="text-ink-muted text-base md:text-lg mb-8 max-w-[42ch] leading-relaxed">
+                {t('home.heroDescription')}
+              </p>
 
-            {/* Sport selectors */}
-            <div className="flex flex-wrap justify-center gap-3 mb-10">
-              {SPORTS.map((sport) => {
-                const Icon = sport.icon;
-                const courtCount = allCourts?.filter((c) => c.sport === sport.id).length || 0;
-                const isActive = selectedSport === sport.id;
-
-                return (
-                  <button
-                    key={sport.id}
-                    type="button"
-                    onClick={() => setSelectedSport(isActive ? '' : sport.id)}
-                    aria-pressed={isActive}
-                    className={`inline-flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all duration-200 min-h-[56px] ${
-                      isActive
-                        ? `${sport.activeTint} shadow-sport`
-                        : `bg-surface ${sport.tint} hover:bg-surface-muted`
-                    }`}
-                  >
-                    <Icon size={20} strokeWidth={2.25} />
-                    <div className="text-left">
-                      <div className="text-sm font-bold">{sport.label}</div>
-                      <div className="text-[10px] font-semibold opacity-80">
-                        {courtCount} {t('home.courtsAvailable')}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-ink-muted">
+                <div className="flex items-center gap-2 text-sm">
+                  <ShieldCheck size={16} weight="regular" className="text-primary" />
+                  <span className="font-medium">{t('home.trustVerified')}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <TrendUp size={16} weight="regular" className="text-info" />
+                  <span className="font-medium">{t('home.trustInstant')}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin size={16} weight="regular" className="text-accent" />
+                  <span className="font-medium">{t('home.trustNearby')}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Search bar */}
+            {/* Right: action panel (7 cols) */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="max-w-4xl mx-auto bg-surface border border-border rounded-2xl shadow-sport-lg p-2 md:p-2.5"
+              transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 0.1 }}
+              className="lg:col-span-7 bg-surface border border-border rounded-3xl shadow-sport-lg p-5 md:p-6 space-y-5"
             >
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-                <div className="md:col-span-3 relative">
-                  <Calendar
+              <div>
+                <span className="section-eyebrow text-[10px]">{t('home.heroBadge')}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-3">
+                  {SPORTS.map((sport) => {
+                    const Icon = sport.icon;
+                    const courtCount = allCourts?.filter((c) => c.sport === sport.id).length || 0;
+                    const isActive = selectedSport === sport.id;
+
+                    return (
+                      <button
+                        key={sport.id}
+                        type="button"
+                        onClick={() => setSelectedSport(isActive ? '' : sport.id)}
+                        aria-pressed={isActive}
+                        className={`inline-flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-all duration-200 min-h-[52px] ${
+                          isActive
+                            ? `${sport.activeTint} shadow-sport-sm`
+                            : `bg-surface-muted ${sport.tint} hover:bg-surface`
+                        }`}
+                      >
+                        <Icon size={18} weight={isActive ? 'fill' : 'regular'} />
+                        <div className="text-left flex-1 min-w-0">
+                          <div className="text-sm font-semibold">{sport.label}</div>
+                          <div className="text-[10px] font-medium opacity-75">
+                            {courtCount} {t('home.courtsAvailable')}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pt-1">
+                <div className="md:col-span-4 relative">
+                  <CalendarBlank
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none"
                     size={18}
+                    weight="regular"
                   />
                   <input
                     type="date"
@@ -277,7 +297,7 @@ export default function HomePage() {
                     min={today}
                     onChange={(e) => setDate(e.target.value)}
                     aria-label={t('home.date')}
-                    className="w-full bg-surface-muted border border-transparent rounded-xl pl-11 pr-3 py-3.5 text-sm text-ink focus:outline-none focus:border-primary focus:bg-surface transition-colors"
+                    className="w-full bg-surface-muted border border-transparent rounded-xl pl-11 pr-3 py-3 text-sm text-ink focus:outline-none focus:border-primary focus:bg-surface transition-colors"
                   />
                 </div>
 
@@ -285,13 +305,14 @@ export default function HomePage() {
                   <Clock
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none"
                     size={18}
+                    weight="regular"
                   />
                   <input
                     type="time"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     aria-label={t('home.time')}
-                    className="w-full bg-surface-muted border border-transparent rounded-xl pl-11 pr-3 py-3.5 text-sm text-ink focus:outline-none focus:border-primary focus:bg-surface transition-colors"
+                    className="w-full bg-surface-muted border border-transparent rounded-xl pl-11 pr-3 py-3 text-sm text-ink focus:outline-none focus:border-primary focus:bg-surface transition-colors"
                   />
                 </div>
 
@@ -299,12 +320,13 @@ export default function HomePage() {
                   <Hourglass
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none"
                     size={18}
+                    weight="regular"
                   />
                   <select
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
                     aria-label={t('home.duration')}
-                    className="w-full bg-surface-muted border border-transparent rounded-xl pl-11 pr-3 py-3.5 text-sm text-ink focus:outline-none focus:border-primary focus:bg-surface transition-colors appearance-none cursor-pointer"
+                    className="w-full bg-surface-muted border border-transparent rounded-xl pl-11 pr-3 py-3 text-sm text-ink focus:outline-none focus:border-primary focus:bg-surface transition-colors appearance-none cursor-pointer"
                   >
                     {DURATIONS.map((d) => (
                       <option key={d} value={d}>
@@ -314,34 +336,18 @@ export default function HomePage() {
                   </select>
                 </div>
 
-                <div className="md:col-span-3">
+                <div className="md:col-span-2">
                   <button
                     type="button"
                     onClick={handleSearch}
-                    className="btn-primary w-full h-full"
+                    aria-label={t('home.searchButton')}
+                    className="btn-primary w-full h-full px-3"
                   >
-                    <Search size={18} />
-                    <span className="font-bold">{t('home.searchButton')}</span>
+                    <MagnifyingGlass size={18} weight="bold" />
                   </button>
                 </div>
               </div>
             </motion.div>
-
-            {/* Trust strip */}
-            <div className="mt-10 flex flex-wrap justify-center items-center gap-x-8 gap-y-3 text-ink-muted">
-              <div className="flex items-center gap-2 text-sm">
-                <ShieldCheck size={16} className="text-primary" />
-                <span className="font-medium">{t('home.trustVerified')}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <TrendingUp size={16} className="text-info" />
-                <span className="font-medium">{t('home.trustInstant')}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin size={16} className="text-accent" />
-                <span className="font-medium">{t('home.trustNearby')}</span>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -350,7 +356,7 @@ export default function HomePage() {
           {!searched ? (
             <div className="text-center py-16">
               <div className="w-16 h-16 bg-primary-subtle rounded-2xl flex items-center justify-center mx-auto mb-5 border border-primary/20">
-                <Search className="text-primary" size={28} strokeWidth={2.25} />
+                <MagnifyingGlass className="text-primary" size={28} weight="bold" />
               </div>
               <h2 className="text-2xl font-display font-bold text-ink mb-2">
                 {t('home.readyTitle')}
@@ -364,13 +370,13 @@ export default function HomePage() {
             </div>
           ) : isError ? (
             <div className="text-center py-16 max-w-md mx-auto sport-card bg-status-danger-bg border-status-danger-border">
-              <Zap size={32} className="mx-auto mb-3 text-status-danger-text" />
+              <Lightning size={32} className="mx-auto mb-3 text-status-danger-text" />
               <p className="font-semibold text-status-danger-text">{t('home.errorMessage')}</p>
             </div>
           ) : !courts || courts.length === 0 ? (
             <div className="text-center py-16 max-w-md mx-auto sport-card">
               <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-surface-muted flex items-center justify-center">
-                <Activity className="text-ink-subtle" size={28} />
+                <Pulse className="text-ink-subtle" size={28} />
               </div>
               <h3 className="text-xl font-display font-bold text-ink mb-2">
                 {t('home.noResultsTitle')}
@@ -398,7 +404,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="chip bg-surface-muted text-ink-muted border-border">
-                    <Calendar size={12} /> {date}
+                    <CalendarBlank size={12} /> {date}
                   </span>
                   <span className="chip bg-primary-subtle text-primary border-primary/30">
                     <Clock size={12} /> {time}
@@ -427,7 +433,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 text-center">
           <div className="flex items-center justify-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center shadow-sport">
-              <Activity className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
+              <Pulse className="w-5 h-5 text-primary-foreground" weight="bold" />
             </div>
             <span className="text-lg font-display font-bold text-ink tracking-tight">
               Sport<span className="text-primary">Hub</span>

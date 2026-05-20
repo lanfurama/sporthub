@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Link } from '@/src/i18n/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ChevronRight, Activity, AlertCircle } from 'lucide-react';
+import { EnvelopeSimple, Lock, CaretRight, Pulse, WarningCircle } from '@phosphor-icons/react';
 import { useTranslations } from 'next-intl';
 import { authApi } from '@/src/lib/api/auth';
 import { useAuthStore } from '@/src/lib/auth-store';
@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 md:px-6 py-12 bg-court-pattern">
+    <div className="min-h-[100dvh] flex items-center justify-center px-4 md:px-6 py-12 bg-court-pattern">
       <div className="w-full max-w-[420px]">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -55,7 +55,7 @@ export default function LoginPage() {
         >
           <Link href="/" className="flex items-center gap-3 mb-3" aria-label="SportHub home">
             <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-sport">
-              <Activity className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
+              <Pulse className="w-6 h-6 text-primary-foreground" weight="bold" />
             </div>
             <span className="text-2xl font-display font-bold text-ink tracking-tight">
               Sport<span className="text-primary">Hub</span>
@@ -78,7 +78,7 @@ export default function LoginPage() {
               role="alert"
               className="mb-5 flex items-start gap-2 px-3.5 py-3 rounded-xl bg-status-danger-bg border border-status-danger-border text-status-danger-text text-sm"
             >
-              <AlertCircle size={16} className="mt-0.5 shrink-0" />
+              <WarningCircle size={16} className="mt-0.5 shrink-0" />
               <span className="font-medium">{error}</span>
             </div>
           )}
@@ -89,7 +89,7 @@ export default function LoginPage() {
                 {t('auth.email')}
               </label>
               <div className="relative">
-                <Mail
+                <EnvelopeSimple
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
                   size={16}
                 />
@@ -147,7 +147,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   {t('auth.loginButton')}
-                  <ChevronRight size={18} />
+                  <CaretRight size={18} />
                 </>
               )}
             </button>

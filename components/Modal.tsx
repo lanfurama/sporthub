@@ -1,7 +1,7 @@
 'use client';
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { X } from '@phosphor-icons/react';
 
 interface ModalProps {
   open: boolean;

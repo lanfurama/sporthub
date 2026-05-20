@@ -2,11 +2,42 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CalendarBlank, Hourglass, CurrencyCircleDollar, Users } from '@phosphor-icons/react';
 import { analyticsApi } from '@/src/lib/api/analytics';
 import Badge from '@/components/Badge';
-import Spinner from '@/components/Spinner';
 import { Table, TableRow, TableCell } from '@/components/Table';
 import { format } from 'date-fns';
+
+const COLORS = {
+  primary: '#10B981',
+  info: '#0EA5E9',
+  accent: '#F97316',
+  gridLine: '#E2E8F0',
+  axisText: '#64748B',
+  tooltipBg: '#FFFFFF',
+  tooltipBorder: '#E2E8F0',
+};
+
+function StatCardSkeleton() {
+  return (
+    <div className="sport-card p-5 animate-pulse">
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-9 h-9 rounded-xl bg-surface-muted" />
+      </div>
+      <div className="h-3 w-24 bg-surface-muted rounded mb-2.5" />
+      <div className="h-7 w-20 bg-surface-muted rounded" />
+    </div>
+  );
+}
+
+function ChartSkeleton() {
+  return (
+    <div className="sport-card p-6 animate-pulse">
+      <div className="h-3 w-32 bg-surface-muted rounded mb-6" />
+      <div className="h-[240px] bg-surface-muted rounded-xl" />
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { data: dashboardData, isLoading } = useQuery({
@@ -15,57 +46,34 @@ export default function DashboardPage() {
     refetchInterval: 30000,
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[500px]">
-        <Spinner size={32} />
-      </div>
-    );
-  }
-
-  const stats = dashboardData ? [
-    {
-      title: 'Active Bookings',
-      value: dashboardData.today.bookingsCount,
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 text-primary">
-          <rect x="3" y="4" width="18" height="18" rx="2" />
-          <path d="M16 2v4M8 2v4M3 10h18" />
-        </svg>
-      ),
-      trend: { value: 12, isPositive: true }
-    },
-    {
-      title: 'Pending Approvals',
-      value: dashboardData.today.pendingCount,
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 text-secondary">
-          <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
-        </svg>
-      ),
-      trend: { value: 5, isPositive: false }
-    },
-    {
-      title: 'Net Revenue',
-      value: `${(dashboardData.today.revenue / 1000000).toFixed(1)}M`,
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 text-primary">
-          <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-      ),
-      trend: { value: 8, isPositive: true }
-    },
-    {
-      title: 'Total Members',
-      value: dashboardData.members.total,
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4 text-secondary">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-        </svg>
-      ),
-      trend: { value: 1.2, isPositive: true }
-    },
-  ] : [];
+  const stats = dashboardData
+    ? [
+        {
+          title: 'Active Bookings',
+          value: dashboardData.today.bookingsCount,
+          Icon: CalendarBlank,
+          tone: 'text-primary bg-primary-subtle',
+        },
+        {
+          title: 'Pending Approvals',
+          value: dashboardData.today.pendingCount,
+          Icon: Hourglass,
+          tone: 'text-accent bg-accent-subtle',
+        },
+        {
+          title: 'Net Revenue',
+          value: `${(dashboardData.today.revenue / 1_000_000).toFixed(1)}M`,
+          Icon: CurrencyCircleDollar,
+          tone: 'text-info bg-info-subtle',
+        },
+        {
+          title: 'Total Members',
+          value: dashboardData.members.total,
+          Icon: Users,
+          tone: 'text-primary bg-primary-subtle',
+        },
+      ]
+    : [];
 
   const bookingSourceData = dashboardData
     ? [
@@ -83,127 +91,166 @@ export default function DashboardPage() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-8">
       <header className="flex flex-col">
-        <h1 className="text-3xl font-display font-black text-white uppercase tracking-tight">System <span className="text-primary italic">Overview</span></h1>
-        <p className="text-xs font-bold text-gray-500 mt-1.5 uppercase tracking-widest">Real-time performance metrics</p>
+        <h1 className="text-2xl md:text-3xl font-display font-bold text-ink tracking-tight">
+          System Overview
+        </h1>
+        <p className="text-sm text-ink-muted mt-1.5">
+          Real-time performance metrics
+        </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
-          <div key={i} className="glass-card p-6 border-white/5 relative overflow-hidden group hover:border-primary/20 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/5 group-hover:scale-110 transition-transform">
-                {stat.icon}
-              </div>
-              <div className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${stat.trend.isPositive ? 'bg-status-success-bg text-status-success-text' : 'bg-status-danger-bg text-status-danger-text'}`}>
-                {stat.trend.isPositive ? '+' : '-'}{stat.trend.value}%
-              </div>
-            </div>
-            <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{stat.title}</div>
-            <div className="text-2xl font-display font-black text-white">{stat.value}</div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+          : stats.map((stat, i) => {
+              const { Icon } = stat;
+              return (
+                <div key={i} className="sport-card sport-card-hover p-5 flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${stat.tone}`}>
+                      <Icon size={20} weight="regular" />
+                    </div>
+                  </div>
+                  <div className="text-xs font-semibold text-ink-subtle uppercase tracking-[0.1em] mb-1.5">
+                    {stat.title}
+                  </div>
+                  <div className="text-2xl font-display font-bold text-ink tabular-nums">
+                    {stat.value}
+                  </div>
+                </div>
+              );
+            })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-6 border-white/5">
-          <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-            Booking Volume
-          </h3>
-          <div className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyBookingsData} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: '#6B7280', fontWeight: 700 }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: '#6B7280', fontWeight: 700 }}
-                />
-                <Tooltip
-                  cursor={{ fill: 'rgba(204,255,0,0.02)' }}
-                  contentStyle={{
-                    backgroundColor: '#121214',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    color: '#FFF'
-                  }}
-                />
-                <Bar dataKey="bookings" fill="#ccff00" radius={[4, 4, 0, 0]} barSize={24} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        {isLoading ? (
+          <>
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : (
+          <>
+            <div className="sport-card p-6">
+              <h3 className="text-xs font-semibold text-ink-subtle uppercase tracking-[0.12em] mb-6 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Booking Volume (last 7 days)
+              </h3>
+              <div className="h-[240px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dailyBookingsData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.gridLine} />
+                    <XAxis
+                      dataKey="date"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: COLORS.axisText, fontWeight: 500 }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: COLORS.axisText, fontWeight: 500 }}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(16, 185, 129, 0.06)' }}
+                      contentStyle={{
+                        backgroundColor: COLORS.tooltipBg,
+                        border: `1px solid ${COLORS.tooltipBorder}`,
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#0F172A',
+                        boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.08)',
+                      }}
+                    />
+                    <Bar dataKey="bookings" fill={COLORS.primary} radius={[6, 6, 0, 0]} barSize={28} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
-        <div className="glass-card p-6 border-white/5">
-          <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-secondary" />
-            Source Breakdown
-          </h3>
-          <div className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={bookingSourceData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  <Cell fill="#ccff00" />
-                  <Cell fill="#00e5ff" />
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#121214',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+            <div className="sport-card p-6">
+              <h3 className="text-xs font-semibold text-ink-subtle uppercase tracking-[0.12em] mb-6 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-info" />
+                Source Breakdown
+              </h3>
+              <div className="h-[240px] flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={bookingSourceData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={88}
+                      paddingAngle={3}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      <Cell fill={COLORS.primary} />
+                      <Cell fill={COLORS.info} />
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: COLORS.tooltipBg,
+                        border: `1px solid ${COLORS.tooltipBorder}`,
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#0F172A',
+                        boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.08)',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-center gap-6 mt-2">
+                {bookingSourceData.map((d, i) => (
+                  <div key={d.name} className="flex items-center gap-2">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: i === 0 ? COLORS.primary : COLORS.info }}
+                    />
+                    <span className="text-xs font-medium text-ink-muted">{d.name}</span>
+                    <span className="text-xs font-bold text-ink tabular-nums">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="glass-card border-white/5 overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">Recent Activity</h3>
-          <button className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">Audit Logs</button>
+      <div className="sport-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-ink">Recent Activity</h3>
         </div>
         <div className="overflow-x-auto">
-          <Table headers={['Reference', 'Customer', 'Details', 'Time', 'Status', 'Total']}>
+          <Table headers={['Reference', 'Customer', 'Court', 'Time', 'Status', 'Total']}>
             {dashboardData?.recentBookings?.slice(0, 8).map((booking) => (
-              <TableRow key={booking.id} className="hover:bg-white/[0.02] border-white/5">
-                <TableCell className="font-mono text-primary font-bold text-xs uppercase">#{booking.ref}</TableCell>
-                <TableCell className="font-bold text-white">{booking.customerName}</TableCell>
-                <TableCell className="text-gray-400 text-xs italic">
-                  {booking.court?.name || `Arena 1`}
+              <TableRow key={booking.id}>
+                <TableCell className="font-mono text-primary font-semibold text-xs">
+                  #{booking.ref}
                 </TableCell>
-                <TableCell className="text-gray-500 font-bold text-[11px] uppercase">
+                <TableCell className="font-semibold text-ink">{booking.customerName}</TableCell>
+                <TableCell className="text-ink-muted">
+                  {booking.court?.name ?? '—'}
+                </TableCell>
+                <TableCell className="text-ink-subtle text-xs tabular-nums">
                   {booking.bookingDate} · {booking.startTime}
                 </TableCell>
                 <TableCell>
                   <Badge status={booking.status} />
                 </TableCell>
-                <TableCell className="text-right font-black text-white">
-                  {booking.finalPrice.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal">VND</span>
+                <TableCell className="text-right font-semibold text-ink tabular-nums">
+                  {booking.finalPrice.toLocaleString()}{' '}
+                  <span className="text-[10px] text-ink-subtle font-normal">VND</span>
                 </TableCell>
               </TableRow>
             ))}
           </Table>
+          {!isLoading && (!dashboardData?.recentBookings || dashboardData.recentBookings.length === 0) && (
+            <div className="py-16 text-center text-sm text-ink-subtle">No recent bookings</div>
+          )}
         </div>
       </div>
     </div>

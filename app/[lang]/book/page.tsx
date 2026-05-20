@@ -7,15 +7,15 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Calendar,
+  CalendarBlank,
   Clock,
   User,
-  CheckCircle2,
-  ChevronRight,
-  ChevronLeft,
+  CheckCircle,
+  CaretRight,
+  CaretLeft,
   CreditCard,
-  AlertCircle,
-} from 'lucide-react';
+  WarningCircle,
+} from '@phosphor-icons/react';
 import Navbar from '@/components/Navbar';
 import Spinner from '@/components/Spinner';
 import MemberSearch from '@/components/MemberSearch';
@@ -72,7 +72,7 @@ function StepIndicator({
                   : 'bg-surface border border-border text-ink-subtle'
               }`}
             >
-              {state === 'done' ? <CheckCircle2 size={18} /> : i + 1}
+              {state === 'done' ? <CheckCircle size={18} /> : i + 1}
             </motion.div>
             <span
               className={`absolute top-12 whitespace-nowrap text-xs font-semibold ${
@@ -242,7 +242,7 @@ function BookingFlowInner() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <Navbar />
 
       <main className="pt-24 md:pt-32 pb-20 px-4 md:px-6">
@@ -273,7 +273,7 @@ function BookingFlowInner() {
                   <div className="sport-card p-6 md:p-8">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center text-primary">
-                        <Calendar size={20} />
+                        <CalendarBlank size={20} />
                       </div>
                       <h2 className="text-lg md:text-xl font-display font-bold text-ink">
                         {t('booking.courtSchedule')}
@@ -324,7 +324,7 @@ function BookingFlowInner() {
                           {t('booking.date')}
                         </label>
                         <div className="relative">
-                          <Calendar
+                          <CalendarBlank
                             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
                             size={16}
                           />
@@ -424,7 +424,7 @@ function BookingFlowInner() {
                         className="btn-primary"
                       >
                         {t('booking.continue')}
-                        <ChevronRight size={18} />
+                        <CaretRight size={18} />
                       </button>
                     </div>
                   </div>
@@ -599,7 +599,7 @@ function BookingFlowInner() {
 
                     <div className="mt-10 flex flex-col sm:flex-row justify-between gap-3">
                       <button type="button" onClick={prevStep} className="btn-secondary">
-                        <ChevronLeft size={18} />
+                        <CaretLeft size={18} />
                         {t('booking.back')}
                       </button>
                       <button
@@ -609,7 +609,7 @@ function BookingFlowInner() {
                         className="btn-primary"
                       >
                         {t('booking.review')}
-                        <ChevronRight size={18} />
+                        <CaretRight size={18} />
                       </button>
                     </div>
                   </div>
@@ -620,7 +620,7 @@ function BookingFlowInner() {
                   <div className="sport-card p-6 md:p-8">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center text-primary">
-                        <CheckCircle2 size={20} />
+                        <CheckCircle size={20} />
                       </div>
                       <h2 className="text-lg md:text-xl font-display font-bold text-ink">
                         {t('booking.confirmTitle')}
@@ -632,7 +632,7 @@ function BookingFlowInner() {
                         role="alert"
                         className="mb-5 flex items-start gap-2 px-3.5 py-3 rounded-xl bg-status-danger-bg border border-status-danger-border text-status-danger-text text-sm"
                       >
-                        <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                        <WarningCircle size={16} className="mt-0.5 shrink-0" />
                         <span className="font-medium">{apiError}</span>
                       </div>
                     )}
@@ -759,7 +759,7 @@ function BookingFlowInner() {
                         className="btn-secondary"
                         disabled={submitting}
                       >
-                        <ChevronLeft size={18} />
+                        <CaretLeft size={18} />
                         {t('booking.back')}
                       </button>
                       <button
@@ -791,7 +791,7 @@ function BookingFlowInner() {
 
 function BookingFlowFallback() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <Navbar />
       <main className="pt-24 md:pt-32 pb-20 px-4 md:px-6">
         <div className="max-w-3xl mx-auto flex justify-center py-20 text-primary">

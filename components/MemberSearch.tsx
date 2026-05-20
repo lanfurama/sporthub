@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X } from 'lucide-react';
+import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { membersApi } from '@/src/lib/api/members';
 import type { Member } from '@/src/types';
 import Spinner from '@/components/Spinner';
@@ -46,7 +46,7 @@ export default function MemberSearch({ onSelect, selectedMember, placeholder }: 
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle" size={16} />
+        <MagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle" size={16} />
         <input
           type="text"
           value={search}

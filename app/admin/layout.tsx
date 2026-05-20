@@ -49,7 +49,7 @@ function AdminShell({ children }: { children: ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
@@ -58,7 +58,7 @@ function AdminShell({ children }: { children: ReactNode }) {
   if ((ROLE_RANK[user.role as Role] ?? 0) < ROLE_RANK.staff) return null;
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-[100dvh] bg-background">
       <AdminSidebar />
       <main className="flex-1 ml-[220px] p-6 md:p-8">{children}</main>
     </div>

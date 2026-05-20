@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter, usePathname } from '@/src/i18n/navigation';
 import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronDown, Globe } from 'lucide-react';
+import { Check, CaretDown, Globe } from '@phosphor-icons/react';
 import { SUPPORTED_LANGS, LANG_LABELS, LANG_FLAGS, type SupportedLang } from '@/src/i18n/routing';
 
 export default function LanguageSwitcher() {
@@ -30,7 +30,7 @@ export default function LanguageSwitcher() {
       >
         <Globe size={16} className="text-ink-muted" />
         <span className="text-xs font-bold text-ink uppercase tracking-wider">{currentLang}</span>
-        <ChevronDown size={14} className={`text-ink-subtle transition-transform ${open ? 'rotate-180' : ''}`} />
+        <CaretDown size={14} className={`text-ink-subtle transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>

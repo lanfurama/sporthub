@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User } from 'lucide-react';
+import { UserPlus, MagnifyingGlass } from '@phosphor-icons/react';
 import { membersApi } from '@/src/lib/api/members';
 import { Table, TableRow, TableCell } from '@/components/Table';
 import Modal from '@/components/Modal';
@@ -71,66 +71,64 @@ export default function AdminMembersPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-black text-white uppercase tracking-tight">Member <span className="text-primary italic">Directory</span></h1>
-          <p className="text-xs font-bold text-gray-500 mt-1.5 uppercase tracking-widest">Global user database management</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-ink tracking-tight">
+            Member Directory
+          </h1>
+          <p className="text-sm text-ink-muted mt-1.5">
+            User database & membership management
+          </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="btn-primary h-11 px-6 text-[13px] rounded-xl shadow-neon"
+          className="btn-primary text-sm"
         >
-          <User className="w-4 h-4 mr-2" />
-          Add Profile
+          <UserPlus size={16} weight="regular" />
+          Add member
         </button>
       </div>
 
-      {/* Filters Bar */}
-      <div className="glass-card p-4 border-white/5 flex items-center gap-4 shadow-2xl">
+      <div className="sport-card p-4 flex items-center gap-3">
         <div className="flex-1 relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-4 h-4">
-              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-            </svg>
-          </span>
+          <MagnifyingGlass
+            size={16}
+            weight="regular"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
+          />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by identity, phone or email..."
-            className="input-field pl-12 h-11 text-xs font-bold"
+            placeholder="Search by name, phone, or email..."
+            className="input-field pl-10 h-11 text-sm"
           />
         </div>
-        <div className="w-[200px]">
-          <select
-            value={planFilter}
-            onChange={(e) => setPlanFilter(e.target.value)}
-            className="input-field h-11 text-xs font-bold appearance-none"
-          >
-            <option value="" className="bg-surface">All Tiers</option>
-            <option value="basic" className="bg-surface">Basic Access</option>
-            <option value="prime" className="bg-surface">Prime Membership</option>
-            <option value="vip" className="bg-surface">VIP Elite</option>
-          </select>
-        </div>
+        <select
+          value={planFilter}
+          onChange={(e) => setPlanFilter(e.target.value)}
+          className="input-field h-11 text-sm w-[200px] appearance-none"
+        >
+          <option value="">All tiers</option>
+          <option value="basic">Basic</option>
+          <option value="prime">Prime</option>
+          <option value="vip">VIP</option>
+        </select>
         <button
           onClick={() => { setSearch(''); setPlanFilter(''); }}
-          className="h-11 px-4 text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors"
+          className="h-11 px-4 text-sm font-semibold text-ink-muted hover:text-ink transition-colors"
         >
           Reset
         </button>
       </div>
 
-      {/* Table Section */}
       {isLoading ? (
-        <div className="glass-card p-20 flex justify-center border-white/5 shadow-2xl">
-          <Spinner size={32} />
+        <div className="sport-card p-20 flex justify-center">
+          <Spinner size={32} className="text-primary" />
         </div>
       ) : (
-        <div className="glass-card border-white/5 overflow-hidden shadow-2xl">
-          <Table
-            headers={['Full Identity', 'Membership Tier', 'Expiration', 'Balance', 'Actions']}
-          >
+        <div className="sport-card overflow-hidden">
+          <Table headers={['Name', 'Tier', 'Expires', 'Balance', 'Actions']}>
             {members.map((member) => {
               const membership = member.memberships?.[0];
               const isExpiringSoon =
@@ -138,11 +136,11 @@ export default function AdminMembersPage() {
                 new Date(membership.expiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000;
 
               return (
-                <TableRow key={member.id} className="hover:bg-white/[0.02] border-white/5">
+                <TableRow key={member.id}>
                   <TableCell>
-                    <div className="flex flex-col py-1">
-                      <span className="font-bold text-white leading-tight">{member.name}</span>
-                      <span className="text-[10px] text-gray-500 font-black uppercase tracking-wider mt-1">{member.phone}</span>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-ink">{member.name}</span>
+                      <span className="text-xs text-ink-subtle mt-0.5">{member.phone}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -151,36 +149,37 @@ export default function AdminMembersPage() {
                         {membership.plan.toUpperCase()}
                       </Badge>
                     ) : (
-                      <span className="text-[10px] text-gray-600 font-black uppercase italic">Unranked</span>
+                      <span className="text-xs text-ink-subtle">No plan</span>
                     )}
                   </TableCell>
                   <TableCell>
                     {membership ? (
-                      <span className={`text-[12px] font-bold ${isExpiringSoon ? 'text-accent' : 'text-gray-400'}`}>
+                      <span className={`text-sm font-medium ${isExpiringSoon ? 'text-accent' : 'text-ink-muted'}`}>
                         {format(new Date(membership.expiresAt), 'MMM dd, yyyy')}
                       </span>
                     ) : (
-                      <span className="text-gray-700">—</span>
+                      <span className="text-ink-subtle">—</span>
                     )}
                   </TableCell>
                   <TableCell>
                     {membership ? (
-                      <span className="font-display font-black text-white">
-                        {membership.creditBalance.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal uppercase ml-1">vnd</span>
+                      <span className="font-semibold text-ink tabular-nums">
+                        {membership.creditBalance.toLocaleString()}{' '}
+                        <span className="text-[10px] text-ink-subtle font-normal ml-0.5">VND</span>
                       </span>
                     ) : (
-                      <span className="text-gray-700">—</span>
+                      <span className="text-ink-subtle">—</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedMember(member.id)}
-                        className="h-8 px-3 text-[10px] font-black text-primary hover:bg-primary/10 border border-primary/20 rounded-lg transition-all uppercase tracking-widest"
+                        className="h-8 px-3.5 text-xs font-semibold text-primary hover:bg-primary-subtle border border-primary/20 rounded-lg transition-all active:scale-[0.98]"
                       >
-                        Adjust Wallet
+                        Adjust wallet
                       </button>
-                      <button className="h-8 px-3 text-[10px] font-black text-gray-500 hover:text-white hover:bg-white/5 border border-white/5 rounded-lg transition-all uppercase tracking-widest">
+                      <button className="h-8 px-3.5 text-xs font-semibold text-ink-muted hover:text-ink hover:bg-surface-muted border border-border rounded-lg transition-all">
                         Profile
                       </button>
                     </div>
@@ -190,57 +189,56 @@ export default function AdminMembersPage() {
             })}
           </Table>
           {members.length === 0 && (
-            <div className="py-20 text-center">
-              <p className="text-xs font-black text-gray-600 uppercase tracking-[0.2em]">No members matching criteria</p>
+            <div className="py-16 text-center text-sm text-ink-subtle">
+              No members match the criteria
             </div>
           )}
         </div>
       )}
 
-      {/* Modals - Refined for Dark Theme */}
       <Modal
         open={showAddModal}
         onOpenChange={setShowAddModal}
-        title="Add New Member Profile"
+        title="Add new member"
         size="md"
       >
-        <form onSubmit={handleAddMember} className="space-y-6">
+        <form onSubmit={handleAddMember} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Full Name</label>
-              <input type="text" name="name" required className="input-field py-2.5 text-xs font-bold" placeholder="e.g. Robert Fox" />
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-ink-muted">Full name</label>
+              <input type="text" name="name" required className="input-field" placeholder="e.g. Mai Phương Linh" />
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Phone Number</label>
-              <input type="tel" name="phone" required className="input-field py-2.5 text-xs font-bold" placeholder="+84 000 000 000" />
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-ink-muted">Phone</label>
+              <input type="tel" name="phone" required className="input-field" placeholder="+84 …" />
             </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Email (Optional)</label>
-            <input type="email" name="email" className="input-field py-2.5 text-xs font-bold" placeholder="robert.fox@company.com" />
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-ink-muted">Email (optional)</label>
+            <input type="email" name="email" className="input-field" placeholder="name@example.com" />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Initial Plan</label>
-            <select name="plan" required className="input-field py-2.5 text-xs font-bold">
-              <option value="basic" className="bg-surface">Basic Access</option>
-              <option value="prime" className="bg-surface">Prime Membership</option>
-              <option value="vip" className="bg-surface">VIP Elite</option>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-ink-muted">Initial plan</label>
+            <select name="plan" required className="input-field">
+              <option value="basic">Basic</option>
+              <option value="prime">Prime</option>
+              <option value="vip">VIP</option>
             </select>
           </div>
-          <div className="flex gap-4 pt-6 border-t border-white/5">
+          <div className="flex gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
-              className="flex-1 btn-secondary h-11 text-[11px] font-black uppercase tracking-widest"
+              className="flex-1 btn-secondary text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={createMemberMutation.isPending}
-              className="flex-1 btn-primary h-11 text-[11px] font-black uppercase tracking-widest shadow-neon"
+              className="flex-1 btn-primary text-sm"
             >
-              {createMemberMutation.isPending ? <Spinner size={16} /> : 'Create Identity'}
+              {createMemberMutation.isPending ? <Spinner size={16} /> : 'Create member'}
             </button>
           </div>
         </form>
@@ -249,44 +247,44 @@ export default function AdminMembersPage() {
       <Modal
         open={!!selectedMember}
         onOpenChange={(open) => !open && setSelectedMember(null)}
-        title="Wallet Adjustment"
+        title="Wallet adjustment"
         size="sm"
       >
-        <form onSubmit={handleAddCredit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Adjustment Amount (VND)</label>
+        <form onSubmit={handleAddCredit} className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-ink-muted">Amount (VND)</label>
             <input
               type="number"
               name="amount"
               required
               min={1}
-              className="input-field py-2.5 text-xs font-bold text-primary"
+              className="input-field font-semibold text-primary"
               placeholder="e.g. 500000"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Reason</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-ink-muted">Reason</label>
             <input
               type="text"
               name="reason"
-              className="input-field py-2.5 text-xs font-bold"
-              placeholder="Manual adjustment, top-up, etc."
+              className="input-field"
+              placeholder="Top-up, refund, manual adjustment…"
             />
           </div>
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={() => setSelectedMember(null)}
-              className="flex-1 btn-secondary h-10 text-[10px] font-black uppercase tracking-widest"
+              className="flex-1 btn-secondary text-sm"
             >
-              Abort
+              Cancel
             </button>
             <button
               type="submit"
               disabled={addCreditMutation.isPending}
-              className="flex-1 btn-primary h-10 text-[10px] font-black uppercase tracking-widest shadow-neon"
+              className="flex-1 btn-primary text-sm"
             >
-              {addCreditMutation.isPending ? <Spinner size={16} /> : 'Apply Sync'}
+              {addCreditMutation.isPending ? <Spinner size={16} /> : 'Apply'}
             </button>
           </div>
         </form>

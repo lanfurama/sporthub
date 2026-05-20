@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import NextLink from 'next/link';
 import { Link } from '@/src/i18n/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { LogOut, LayoutDashboard, Activity } from 'lucide-react';
+import { SignOut, SquaresFour, Pulse } from '@phosphor-icons/react';
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/src/lib/auth-store';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -46,7 +46,7 @@ export default function Navbar() {
             transition={{ type: 'spring', stiffness: 320, damping: 18 }}
             className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-sport"
           >
-            <Activity className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
+            <Pulse className="w-5 h-5 text-primary-foreground" weight="bold" />
           </motion.div>
           <span className="text-xl font-display font-bold text-ink tracking-tight">
             Sport<span className="text-primary">Hub</span>
@@ -81,7 +81,7 @@ export default function Navbar() {
                   aria-label={t('nav.dashboard')}
                   title={t('nav.dashboard')}
                 >
-                  <LayoutDashboard size={18} />
+                  <SquaresFour size={18} />
                 </NextLink>
               )}
 
@@ -91,7 +91,7 @@ export default function Navbar() {
                 aria-label={t('nav.logout')}
                 title={t('nav.logout')}
               >
-                <LogOut size={18} />
+                <SignOut size={18} />
               </button>
             </div>
           ) : (
